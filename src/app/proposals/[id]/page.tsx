@@ -13,7 +13,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
   if (!p) notFound();
   const site = sites.find((s) => s.id === p.site_id);
   return <>
-    <PageHeader title="Propuesta" eyebrow={`Forja3D MX / ${site?.name ?? p.site_id}`} description="Solicitada por la máquina · aprobada por una persona" actions={<Tag>{p.provider === 'reap' ? 'REAP SANDBOX' : 'MOCK'}</Tag>} />
+    <PageHeader title="Propuesta" eyebrow={`Forja3D MX / ${site?.name ?? p.site_id}`} description={p.status === 'approved' || p.status === 'paid' ? 'Solicitada por la máquina · aprobada por una persona' : 'Solicitada por la máquina'} actions={<Tag>{p.provider === 'reap' ? 'REAP SANDBOX' : 'MOCK'}</Tag>} />
     <div className="grid cols-2">
       <div className="stack">
         <section className="panel dark"><h2>{p.product?.title ?? PART_LABELS[p.part_type]}</h2><EquipmentVisual part={p.part_type} variant="hero" />
