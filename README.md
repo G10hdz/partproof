@@ -21,6 +21,7 @@ Cuando una pieza llega al final de su vida y el stock baja del mínimo, la máqu
 - **Fase A, sin red.** Evidencia, compatibilidad con la placa, variante exacta del catálogo y país de envío. Si falla, no se llama a Reap.
 - **Fase B, sobre el quote de Reap.** Tope, presupuesto del mes y vigencia. Cuenta el `finalAmount` con envío e impuestos, no el precio de la ficha.
 - **Aprobación.** Cada checkout nace en `REQUIRES_ACTION`. La persona aprueba en la página hosted de Reap con passkey, desde el teléfono. El libro carga el gasto a la máquina cuando el checkout llega a `COMPLETED`.
+- **Telegram.** Cada propuesta nueva llega a @partproof_bot. Si el gate pasó, trae botones Aprobar y Rechazar; Aprobar solo vale para el quote que se avisó y devuelve el link de Reap. El bot solo responde al chat configurado.
 
 El LLM solo lee la foto de la placa (modelo y daño visible). No ve tarjeta, API key, `enrollmentId` ni el cuerpo del quote o del checkout.
 
@@ -80,7 +81,7 @@ gcloud run deploy partproof --source . --region us-central1 \
   --env-vars-file run-env.yaml
 ```
 
-`run-env.yaml` no se sube: lleva `BACKEND=real`, `DEMO_MODE=1`, `VISION_MODE=replay`, `PAYMENT_PROVIDER=reap`, `REAP_RETURN_URL`, las llaves de sandbox de Reap y `MCP_TOKEN_P1..P4`.
+`run-env.yaml` no se sube: lleva `BACKEND=real`, `DEMO_MODE=1`, `VISION_MODE=replay`, `PAYMENT_PROVIDER=reap`, `REAP_RETURN_URL`, las llaves de sandbox de Reap, `MCP_TOKEN_P1..P4` y, para el bot, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_CHAT_ID` y `APP_URL`.
 
 ## Documentos
 
