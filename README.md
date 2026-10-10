@@ -4,6 +4,8 @@ Una impresora 3D pide su refacción con evidencia. Un gate determinista decide s
 
 **Demo en vivo:** https://partproof-527601165113.us-central1.run.app (Reap sandbox, sin dinero real)
 
+**Clip de Reap sandbox y Telegram (48 s):** [Drive](https://drive.google.com/open?id=1x4ZlXK7ebF7ktvTFXKJRXtzglVByrQ3f) · [repo](docs/assets/reap-telegram.mp4). Aprobación con passkey, pago completado en el sandbox y el aviso con botones en Telegram.
+
 La empresa de ejemplo es Forja3D, una granja de impresión con plantas en Guadalajara y Toronto. Presupuesto mensual de 6000 MXN y tope de 1000 MXN por compra.
 
 Track: Reap, Most Worthwhile Problem.
