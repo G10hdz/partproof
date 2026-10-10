@@ -38,6 +38,10 @@ cd ../partproof-<agente> && npm install
 
 M1 guarda la llave de Reap en `.env.local`. Antes del ensayo final se copia a M2 (la demo corre en M2).
 
+## Estado actual
+
+Task 0 implementado y verificado en `bowfin`: semilla y catálogo (2 pruebas), prueba del launcher, typecheck y build en verde. Pendiente integrar en `main` y anunciar C0; no iniciar A1–A6 todavía. Detalles en `01-task0-foundation.md`.
+
 ## Checkpoints y merge
 
 | Checkpoint | Condición | Quién lo anuncia |

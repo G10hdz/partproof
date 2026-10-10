@@ -1,0 +1,22 @@
+[
+  { "id": "dm-accel-cable", "merchant": "digitmakers.ca", "title": "Prusa Accelerometer Cables",
+    "variantId": "67588566679782", "price": 21.99, "currency": "CAD", "partType": "accelerometer_cable",
+    "compatModels": ["MK4", "MK3.9", "MK3.5", "MK4S", "MK3.9S", "MK3.5S", "CORE One", "CORE One+", "CORE One L"],
+    "shipsTo": ["AD","AG","AI","AL","AM","AR","AT","AU","AW","AX","BA","BB","BE","BG","BH","BO","BQ","BR","BS","BY","BZ","CA","CH","CK","CL","CO","CR","CY","CZ","DE","DK","EC","EE","ES","FI","FK","FO","FR","GB","GE","GF","GG","GI","GL","GP","GQ","GR","GS","GY","HK","HR","HU","ID","IE","IL","IM","IN","IQ","IS","IT","JE","JO","KW","LB","LI","LT","LU","LV","MC","MD","ME","MK","MT","MX","MY","NL","NO","NZ","OM","PE","PH","PL","PS","PT","PY","QA","RE","RO","RS","RU","SA","SD","SE","SG","SI","SJ","SK","SM","SN","SR","SS","TF","TH","TN","TR","TZ","UA","US","UY","VA","VE","VG","WF","XK","YT","ZA"],
+    "leadTimeDays": 7 },
+  { "id": "dm-ptfe-mk3splus", "merchant": "digitmakers.ca", "title": "Prusa Hotend PTFE Tube (MK3S+, MMU2S)",
+    "variantId": "42393530925286", "price": 2.99, "currency": "CAD", "partType": "ptfe_tube",
+    "compatModels": ["MK3S+", "MMU2S"],
+    "shipsTo": ["AD","AG","AI","AL","AM","AR","AT","AU","AW","AX","BA","BB","BE","BG","BH","BO","BQ","BR","BS","BY","BZ","CA","CH","CK","CL","CO","CR","CY","CZ","DE","DK","EC","EE","ES","FI","FK","FO","FR","GB","GE","GF","GG","GI","GL","GP","GQ","GR","GS","GY","HK","HR","HU","ID","IE","IL","IM","IN","IQ","IS","IT","JE","JO","KW","LB","LI","LT","LU","LV","MC","MD","ME","MK","MT","MX","MY","NL","NO","NZ","OM","PE","PH","PL","PS","PT","PY","QA","RE","RO","RS","RU","SA","SD","SE","SG","SI","SJ","SK","SM","SN","SR","SS","TF","TH","TN","TR","TZ","UA","US","UY","VA","VE","VG","WF","XK","YT","ZA"],
+    "leadTimeDays": 7 },
+  { "id": "dm-thermistor", "merchant": "digitmakers.ca", "title": "Original Prusa Hotend Thermistor",
+    "variantId": "44386635612390", "price": 19.99, "currency": "CAD", "partType": "thermistor",
+    "compatModels": ["MK3S", "MK3", "MK2.5S", "MK2.5", "MK2S", "MK3S+", "MK2"],
+    "shipsTo": ["AD","AG","AI","AL","AM","AR","AT","AU","AW","AX","BA","BB","BE","BG","BH","BO","BQ","BR","BS","BY","BZ","CA","CH","CK","CL","CO","CR","CY","CZ","DE","DK","EC","EE","ES","FI","FK","FO","FR","GB","GE","GF","GG","GI","GL","GP","GQ","GR","GS","GY","HK","HR","HU","ID","IE","IL","IM","IN","IQ","IS","IT","JE","JO","KW","LB","LI","LT","LU","LV","MC","MD","ME","MK","MT","MX","MY","NL","NO","NZ","OM","PE","PH","PL","PS","PT","PY","QA","RE","RO","RS","RU","SA","SD","SE","SG","SI","SJ","SK","SM","SN","SR","SS","TF","TH","TN","TR","TZ","UA","US","UY","VA","VE","VG","WF","XK","YT","ZA"],
+    "leadTimeDays": 7 },
+  { "id": "ct-nozzle-04", "merchant": "cubictech.com.au", "title": "Micro Swiss FlowTech Hyper-CHT Nozzle 0.4 mm",
+    "variantId": "53918466703643", "price": 59.95, "currency": "AUD", "partType": "nozzle",
+    "compatHotends": ["Micro Swiss FlowTech"],
+    "shipsTo": ["AT","AU","BE","BG","CA","CH","CN","CY","CZ","DE","DK","ES","FI","FR","GB","GR","HK","HR","HU","ID","IE","IT","JP","KR","LI","LU","NL","NO","NZ","PT","RO","SE","SG","SI","SK","TH","TW","US"],
+    "leadTimeDays": 10 }
+]
