@@ -173,3 +173,15 @@ describe('OpenRouter (Gemini)', () => {
     expect(() => visionFromEnv({ VISION_MODE: 'live', VISION_PROVIDER: 'otro' })).toThrow(/anthropic u openrouter/);
   });
 });
+
+describe('fotos subidas por el técnico', () => {
+  it('busca también en la carpeta de subidas y en replay las rechaza por no estar grabadas', async () => {
+    const { photosDir, replayPath } = await fixture();
+    const uploadsDir = await mkdtemp(path.join(tmpdir(), 'uploads-'));
+    await writeFile(path.join(uploadsDir, 'cap_p2_abcd1234.jpg'), JPEG('captured'));
+    const vision = createVision({ mode: 'replay', photosDir, uploadsDir, replayPath });
+    await expect(vision.analyzePhoto('cap_p2_abcd1234')).rejects.toThrow(/no tiene resultado grabado/);
+    const missingDir = createVision({ mode: 'replay', photosDir, uploadsDir: path.join(uploadsDir, 'nope'), replayPath });
+    await expect(missingDir.analyzePhoto('plate_p2')).resolves.toMatchObject({ mode: 'replay' });
+  });
+});

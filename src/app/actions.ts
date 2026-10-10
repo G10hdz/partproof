@@ -3,7 +3,7 @@
 // nunca aceptan merchant, variante ni precio desde el cliente.
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import type { ProposalView } from '@/contracts';
+import type { EvidencePreview, ProposalView, RequestPartResult } from '@/contracts';
 import { server } from '@/server/api';
 
 const Id = z.string().trim().min(1).max(100);
@@ -57,5 +57,21 @@ export async function resetDemo(): Promise<ActionResult<null>> {
     if (process.env.DEMO_MODE !== '1') throw new Error('resetDemo solo existe con DEMO_MODE=1');
     await server.resetDemo();
     return null;
+  });
+}
+
+// Lee una foto de evidencia y la compara con el modelo registrado, sin crear propuesta.
+export async function previewEvidence(machineId: string, photoId: string): Promise<ActionResult<EvidencePreview>> {
+  return run(() => server.previewEvidence(Id.parse(machineId), Id.parse(photoId)));
+}
+
+// Envía la evidencia: abre la solicitud de la máquina con esa foto. El gate decide igual que por MCP.
+export async function submitEvidence(machineId: string, partType: string, photoId: string): Promise<ActionResult<RequestPartResult>> {
+  const part = z.enum(['ptfe_tube', 'thermistor', 'accelerometer_cable', 'nozzle']).parse(partType);
+  return run(async () => {
+    const id = Id.parse(machineId);
+    const stock = (await server.listStock()).find((s) => s.machine_id === id && s.part_type === part);
+    if (!stock) throw new Error(`La máquina ${id} no usa esa pieza`);
+    return server.createProposal({ machine_id: id, part_type: part, hours_since_replace: stock.hours_since_replace, photo_id: Id.parse(photoId) });
   });
 }
