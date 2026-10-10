@@ -21,6 +21,8 @@ agent() { # agent P1: el agente Klipper lee Moonraker y llama request_part por M
 step1() { say '0:15 Avanzar 50 h en las 4 máquinas'
   for m in P1 P2 P3 P4; do post /api/demo/advance "{\"machine_id\":\"$m\",\"hours\":50}"; done; }
 step2() { say '0:35 Agentes piden por MCP (request_part)'
+  # Con BACKEND=real, advance ya abre las solicitudes; correr el agente otra vez duplica P2..P4. AGENTS=1 lo fuerza.
+  [[ "${AGENTS:-}" == 1 ]] || { echo 'advance ya creó las solicitudes (AGENTS=1 para correr los agentes)'; return; }
   for m in P1 P2 P3 P4; do echo "-- $m"; agent "$m" || echo "agente $m falló"; done; }
 step3() { say '1:00 Abrir la propuesta de P1 en el navegador y aprobar'; echo "$URL"; }
 step4() { say '1:25 P2 rechazada por compatibilidad (ya pidió en el paso 2)'; echo 'Mostrar propuesta P2'; }
