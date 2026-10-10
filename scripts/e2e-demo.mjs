@@ -8,6 +8,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { approvalToken } from '../src/lib/approval-token.ts';
 
 // Server Actions del build: se llaman igual que el navegador al hacer clic en la UI.
 const ACTIONS = () => JSON.parse(readFileSync(path.join(ROOT, '.next/server/server-reference-manifest.json'), 'utf8')).node;
@@ -134,9 +135,16 @@ try {
     expect(!proposals().some((p) => p.status === 'approved' || p.status === 'paid'), 'se abrió una compra');
   });
 
+  await step('UI: aprobar con un quote distinto al revisado se rechaza', async () => {
+    const [p] = byMachine('P1');
+    const stale = approvalToken({ ...p, quote: { ...p.quote, id: 'quote_viejo' } });
+    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id, stale]);
+    expect(r.failed && byMachine('P1')[0].status === 'proposed', `failed ${r.failed}, status ${byMachine('P1')[0].status}`);
+  });
+
   await step('UI: aprobar P1 crea el checkout y la página muestra la URL de aprobación', async () => {
     const [p] = byMachine('P1');
-    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id]);
+    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id, approvalToken(p)]);
     expect(!r.failed, r.text.slice(0, 160));
     const [after] = byMachine('P1');
     expect(after.status === 'approved' && after.checkout?.approvalUrl, `status ${after.status}`);
@@ -156,7 +164,7 @@ try {
 
   await step('UI: aprobar una propuesta rechazada falla y no cambia su estado', async () => {
     const [p] = byMachine('P4');
-    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id]);
+    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id, approvalToken(p) ?? 'none']);
     expect(r.failed && byMachine('P4')[0].status === 'rejected', `failed ${r.failed}, status ${byMachine('P4')[0].status}`);
   });
 
