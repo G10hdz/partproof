@@ -1,5 +1,6 @@
 // Graba demo/vision-replay.json con una llamada live por foto de demo/photos.
-// Uso: VISION_MODE=live ANTHROPIC_MODEL=... ANTHROPIC_API_KEY=... node --experimental-strip-types scripts/record-vision-replay.mjs
+// Uso con Anthropic:  VISION_MODE=live ANTHROPIC_MODEL=... ANTHROPIC_API_KEY=... node --experimental-strip-types scripts/record-vision-replay.mjs
+// Uso con OpenRouter: VISION_MODE=live VISION_PROVIDER=openrouter OPENROUTER_MODEL=google/gemini-3.8-flash OPENROUTER_API_KEY=... (mismo comando)
 const { createVision, visionFromEnv } = await import('../src/server/vision.ts');
 
 const deps = visionFromEnv();
