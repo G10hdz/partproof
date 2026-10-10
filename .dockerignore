@@ -10,3 +10,8 @@
 .git
 .vercel
 Dockerfile
+
+# Variables del deploy y artefactos locales.
+run-env.yaml
+graphify-out
+.nanostack
