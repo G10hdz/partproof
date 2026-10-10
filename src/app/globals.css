@@ -101,3 +101,5 @@ tr:last-child td{border:0}
 .gate-checklist .pending .check-mark{color:var(--muted)}
 select{font:inherit;border:1px solid var(--line);border-radius:8px;min-height:44px;padding:8px 12px;background:#fff}
 .inline{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.override-list{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:9px}
+.override-list legend{font-size:12px;color:var(--muted);padding:0 6px}

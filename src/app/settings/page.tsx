@@ -1,7 +1,6 @@
 import { server } from '@/server/api';
 import SettingsForm from '@/components/SettingsForm';
 import { Fact, PageHeader } from '@/components/Ui';
-import { money } from '@/components/format';
 
 export const metadata = { title: 'Ajustes' };
 export default async function SettingsPage() {
@@ -12,5 +11,5 @@ export default async function SettingsPage() {
       {sites.map((s) => <Fact key={s.id} label="Planta">{s.name} · {s.country}</Fact>)}
       <Fact label="Pagos">{modes.provider === 'reap' ? 'REAP SANDBOX' : 'MOCK'}</Fact><Fact label="Visión">{modes.vision === 'live' ? 'EN VIVO' : 'REPETICIÓN'}</Fact>
       <Fact label="Telemetría">SIMULADA</Fact></dl></section>
-    <section className="panel" style={{ marginTop: 18 }}><h2>Límites de gasto</h2><SettingsForm budget={c.monthly_budget} cap={c.purchase_cap} currency={c.currency} /></section></>;
+    <section className="panel" style={{ marginTop: 18 }}><h2>Límites de gasto</h2><SettingsForm budget={c.monthly_budget} cap={c.purchase_cap} currency={c.currency} overrides={c.budget_overrides ?? {}} /></section></>;
 }
