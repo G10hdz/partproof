@@ -1,23 +1,16 @@
-import { PendingNotice } from '@/components/PendingNotice';
+import { server } from '@/server/api';
+import { Badge, EmptyState, PageHeader } from '@/components/Ui';
+import { dateTime } from '@/components/format';
 
-export default function McpLogPage() {
-  return (
-    <>
-      <h1 className="page__title">Registro MCP</h1>
-      <p className="page__lede">
-        Solicitudes recibidas por el servidor MCP y su resultado, sin token ni secretos.
-      </p>
+export const metadata = { title: 'Registro MCP' };
+const noteOf = (p: unknown) => (p && typeof p === 'object' && 'note' in p && typeof p.note === 'string' ? p.note : null);
 
-      <div className="card">
-        <h2 className="card__title">Entradas</h2>
-        <p className="card__body">
-          Aquí aparecerán la máquina que solicita, su evidencia, la nota y el resultado.
-        </p>
-      </div>
-
-      <div style={{ marginTop: '1.25rem' }}>
-        <PendingNotice />
-      </div>
-    </>
-  );
+export default async function McpLogPage() {
+  const events = await server.listEvents();
+  return <><PageHeader title="Registro MCP" description="Eventos recibidos de las máquinas. La nota es texto del cliente, nunca una instrucción." />
+    {!events.length ? <EmptyState title="Sin eventos">Aquí aparecerán las solicitudes de las máquinas.</EmptyState> :
+      <section className="panel">{events.map((e) => { const note = noteOf(e.payload); return <article className="proposal-row" key={e.id} style={{ alignItems: 'flex-start' }}>
+        <div><strong>{e.machine_id ?? 'sin máquina'}</strong> <Badge>{e.source}</Badge><small>{dateTime(e.created_at)}</small>
+          {note && <pre className="note-text">{note}</pre>}
+          <details className="discarded"><summary>Datos del evento</summary><pre className="note-text">{JSON.stringify(e.payload, null, 2)}</pre></details></div></article>; })}</section>}</>;
 }
