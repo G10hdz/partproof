@@ -2,7 +2,7 @@
   "f11308505845a4ea65034d4e0891433371b052f8b84440b08325e8bc3dcf6053": {
     "photo_id": "plate_p1",
     "model": "minimax/minimax-m3",
-    "recorded_at": "2026-10-10T03:28:10.687Z",
+    "recorded_at": "2026-10-10T04:59:38.380Z",
     "result": {
       "nameplate_model": "Original Prusa MK4S",
       "hotend": "Nextruder",
@@ -16,7 +16,7 @@
   "d0283380504a16acc45e323cc9fb9252715444a64431fe5387177ff3a4eec7cb": {
     "photo_id": "plate_p2",
     "model": "minimax/minimax-m3",
-    "recorded_at": "2026-10-10T03:28:11.863Z",
+    "recorded_at": "2026-10-10T04:59:39.303Z",
     "result": {
       "nameplate_model": "Original Prusa MK3S",
       "hotend": "E3D V6",
@@ -30,7 +30,7 @@
   "bc47769388ada737bb8af0573f910cdf695827a95cb2bf541dc6ca769377503f": {
     "photo_id": "plate_p2_sticker",
     "model": "minimax/minimax-m3",
-    "recorded_at": "2026-10-10T03:28:13.198Z",
+    "recorded_at": "2026-10-10T04:59:40.504Z",
     "result": {
       "nameplate_model": "Original Prusa MK3S",
       "hotend": null,
@@ -44,21 +44,21 @@
   "a8a0dc146831ad22b42ae20992aeb61a2c35d89d8d33d105633a3800adf4b852": {
     "photo_id": "plate_p3",
     "model": "minimax/minimax-m3",
-    "recorded_at": "2026-10-10T03:28:14.917Z",
+    "recorded_at": "2026-10-10T04:59:41.339Z",
     "result": {
       "nameplate_model": "Original Prusa MK3S+",
       "hotend": "E3D V6",
       "visible_damage": [
         "none"
       ],
-      "label_text": "Original Prusa MK3S+\nModel Original Prusa MK3S+\nHotend E3D V6\nS/N CZPX0721X004XK01127\nInput 24 V DC 240 W\nMade in Czech Republic",
-      "confidence": 0.99
+      "label_text": "Original Prusa MK3S+\nModel: Original Prusa MK3S+\nHotend: E3D V6\nS/N: CZPX0721X004XK01127\nInput: 24 V DC 240 W\nMade in: Czech Republic",
+      "confidence": 0.98
     }
   },
   "3da7fdb71a73df626d54de274952b10ecc5edfddd7680406bc6ac7a642f9e3fc": {
     "photo_id": "plate_p4",
     "model": "minimax/minimax-m3",
-    "recorded_at": "2026-10-10T03:28:16.099Z",
+    "recorded_at": "2026-10-10T04:59:42.295Z",
     "result": {
       "nameplate_model": "Creality K1",
       "hotend": "Micro Swiss FlowTech",
