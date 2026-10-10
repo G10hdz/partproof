@@ -9,5 +9,5 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/schedules', label: 'Programadas' },
   { href: '/ledger', label: 'Libro' },
   { href: '/settings', label: 'Ajustes' },
-  { href: '/mcp-log', label: 'Registro MCP' },
+  { href: '/mcp-log', label: 'Bitácora' },
 ];

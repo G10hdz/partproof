@@ -3,8 +3,9 @@ import type { ReactNode } from 'react';
 import type { ProposalView, Site } from '@/contracts';
 import { PART_LABELS, STATUS_LABELS, dateTime } from './format';
 
-export function PageHeader({ title, description, eyebrow = 'Forja3D MX / Operación' }: { title: string; description: string; eyebrow?: string }) {
-  return <header className="page-heading"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p className="muted">{description}</p></header>;
+export function PageHeader({ title, description, eyebrow = 'Forja3D MX / Datos de ejemplo', actions, back = true }: { title: string; description: string; eyebrow?: string; actions?: ReactNode; back?: boolean }) {
+  return <header className="page-head"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p className="sub">{description}</p></div>
+    <div className="head-actions">{actions}{back && <Link className="btn" href="/">← Flota</Link>}</div></header>;
 }
 export const statusTone = (s: ProposalView['status']) => (s === 'paid' ? 'good' : s === 'rejected' || s === 'failed' ? 'bad' : 'neutral');
 export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'good' | 'bad' | 'neutral' }) {
@@ -12,6 +13,9 @@ export function Badge({ children, tone = 'neutral' }: { children: ReactNode; ton
 }
 export function Fact({ label, children }: { label: string; children: ReactNode }) {
   return <div className="fact"><dt>{label}</dt><dd>{children}</dd></div>;
+}
+export function Tag({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'good' | 'bad' | 'neutral' }) {
+  return <span className={`tag ${tone}`}>{children}</span>;
 }
 export function EmptyState({ title, children }: { title: string; children: ReactNode }) {
   return <div className="empty-state"><h3>{title}</h3><p>{children}</p></div>;

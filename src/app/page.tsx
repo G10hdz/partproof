@@ -2,28 +2,35 @@ import Link from 'next/link';
 import { server } from '@/server/api';
 import EquipmentVisual from '@/components/EquipmentVisual';
 import { AdvanceHours, ResetDemo } from '@/components/DemoControls';
-import { Badge, Fact, PageHeader, ProposalList } from '@/components/Ui';
-import { PART_LABELS, lifePercent } from '@/components/format';
+import { Fact, PageHeader, ProposalList, Tag } from '@/components/Ui';
+import { PART_LABELS, lifePercent, money } from '@/components/format';
 
 export default async function FleetPage() {
-  const [machines, sites, stock, proposals, modes] = await Promise.all([server.listMachines(), server.listSites(), server.listStock(), server.listProposals(), server.getModes()]);
+  const [machines, sites, stock, proposals, modes, ledger] = await Promise.all([server.listMachines(), server.listSites(), server.listStock(), server.listProposals(), server.getModes(), server.getLedger()]);
+  const low = stock.filter((s) => s.qty < s.min_qty);
+  const hero = machines.find((m) => low.some((s) => s.machine_id === m.id)) ?? machines[0];
+  const others = machines.filter((m) => m.id !== hero?.id);
+  const pending = low[0];
+  const pct = ledger.monthly_budget > 0 ? Math.min(100, (ledger.monthly_total / ledger.monthly_budget) * 100) : 0;
+  const row = (m: (typeof machines)[number]) => { const s = stock.filter((x) => x.machine_id === m.id); const bad = s.some((x) => x.qty < x.min_qty);
+    return <div className="row" key={m.id}><EquipmentVisual variant="compact" /><div className="grow"><strong><Link href={`/machines/${m.id}`}>{m.id} / {m.nameplate_model}</Link></strong><small>{m.hotend} · {m.hours_total} h · {sites.find((x) => x.id === m.site_id)?.name}</small></div>
+      <Tag tone={bad ? 'bad' : 'good'}>{s.map((x) => `${PART_LABELS[x.part_type]} ${x.qty} / ${x.min_qty}`).join(' · ') || 'Sin stock registrado'}</Tag><Link className="btn" href={`/machines/${m.id}`}>Ver ficha</Link>
+      {modes.demo && <AdvanceHours machineId={m.id} />}</div>; };
   return <>
-    <PageHeader title="Flota" description="Estado de cada impresora, su stock de refacciones y la vida útil restante." />
-    <div className="grid cols-auto">{machines.map((m) => <section className="panel" key={m.id}>
-      <EquipmentVisual />
-      <Badge>{m.id}</Badge> <Badge>{sites.find((s) => s.id === m.site_id)?.name ?? m.site_id}</Badge>
-      <h3><Link href={`/machines/${m.id}`}>{m.name}</Link></h3>
-      <p className="muted small">{m.nameplate_model} · {m.hotend}</p>
-      <dl><Fact label="Horas de uso">{m.hours_total} h</Fact></dl>
-      {stock.filter((s) => s.machine_id === m.id).map((s) => { const pct = lifePercent(s.hours_since_replace, s.rated_life_hours); return <div className="part-row" key={s.part_type}>
-        <div><strong>{PART_LABELS[s.part_type]}</strong><Badge tone={s.qty < s.min_qty ? 'bad' : 'good'}>{s.qty} / {s.min_qty} mín.</Badge></div>
-        <div className="progress" role="img" aria-label={`Vida usada ${pct}%`}><span style={{ width: `${pct}%` }} /></div>
-        <small className="muted">{s.hours_since_replace} de {s.rated_life_hours} h ({pct}%)</small></div>; })}
-      <p className="small"><Link className="link" href={`/machines/${m.id}`}>Detalle y foto de placa →</Link></p>
-      {modes.demo && <AdvanceHours machineId={m.id} />}
-    </section>)}</div>
-    <section className="panel" style={{ marginTop: 18 }}><h2>Solicitudes recientes</h2><ProposalList proposals={proposals.slice(0, 5)} sites={sites} />
-      <p className="small"><Link className="link" href="/proposals">Ver todas →</Link></p></section>
-    {modes.demo && <div style={{ marginTop: 18 }}><ResetDemo /></div>}
-  </>;
+    <PageHeader title="Flota" eyebrow="Forja3D MX / 04 Equipos" description="Estado de cada impresora, su stock de refacciones y la vida útil restante." back={false} />
+    <div className="grid cols-2">
+      <div className="stack">
+        {hero && <section className="panel dark"><h2>{hero.id} / {hero.nameplate_model}</h2><EquipmentVisual variant="hero" />
+          <div className="actions"><Link className="btn" href={`/machines/${hero.id}`}>Ver ficha</Link>{proposals[0] && <Link className="btn accent" href={`/proposals/${proposals[0].id}`}>Revisar solicitud</Link>}</div></section>}
+        <section className="panel"><h2>Otras máquinas</h2>{others.length ? others.map(row) : <p className="muted">Sin más máquinas.</p>}</section>
+        <section className="panel"><h2>Solicitudes recientes</h2><ProposalList proposals={proposals.slice(0, 5)} sites={sites} /><p className="small"><Link className="link" href="/proposals">Ver todas →</Link></p></section>
+      </div>
+      <div className="stack">
+        <section className="panel"><h2>Reposición pendiente</h2>{pending ? <><Tag>Stock bajo</Tag><h3 style={{ marginTop: 18 }}>{PART_LABELS[pending.part_type]}</h3>
+          <dl><Fact label="Stock / mínimo">{pending.qty} / {pending.min_qty}</Fact><Fact label="Máquina">{pending.machine_id}</Fact><Fact label="Vida usada">{lifePercent(pending.hours_since_replace, pending.rated_life_hours)}%</Fact></dl></> : <p className="muted">Todo el stock está sobre el mínimo.</p>}</section>
+        <section className="panel"><h2>Presupuesto del mes</h2><p className="eyebrow">Gasto del mes</p><p className="big-number">{money(ledger.monthly_total, ledger.currency)}</p>
+          <div className="progress"><span style={{ width: `${pct}%` }} /></div><dl><Fact label="Presupuesto">{money(ledger.monthly_budget, ledger.currency)}</Fact><Fact label="Disponible">{money(Math.max(0, ledger.monthly_budget - ledger.monthly_total), ledger.currency)}</Fact></dl></section>
+        {modes.demo && <ResetDemo />}
+      </div>
+    </div></>;
 }

@@ -4,8 +4,10 @@ import Link from 'next/link';
 import type { EvidencePreview, PartType, RequestPartResult } from '@/contracts';
 import { previewEvidence, submitEvidence } from '@/app/actions';
 import { PART_LABELS } from './format';
+import EquipmentVisual from './EquipmentVisual';
+import { Fact, Tag } from './Ui';
 
-export default function CaptureForm({ machineId, parts }: { machineId: string; parts: PartType[] }) {
+export default function CaptureForm({ machineId, parts, registeredModel }: { machineId: string; parts: PartType[]; registeredModel: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [photo, setPhoto] = useState<EvidencePreview | null>(null);
@@ -32,20 +34,30 @@ export default function CaptureForm({ machineId, parts }: { machineId: string; p
     try { const r = await submitEvidence(machineId, part, photo.photo_id); if (r.ok) setResult(r.data); else setMsg(r.error); }
     catch { setMsg('No se pudo enviar la evidencia.'); } finally { setBusy(false); }
   }
-  return <div className="capture-form">
-    <form className="capture-form" onSubmit={upload}>
-      <label htmlFor={`photo-${machineId}`}>Foto de la placa / {machineId}<input id={`photo-${machineId}`} name="photo" type="file" accept="image/jpeg,image/png" capture="environment" required disabled={busy} /></label>
-      <p className="muted small">Modelo completo y legible. JPEG o PNG, máximo 5 MB.</p>
-      <button className="secondary" type="submit" disabled={busy}>{busy ? 'Procesando…' : 'Analizar foto'}</button></form>
-    {photo && <div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="photo" src={`/api/photos/${photo.photo_id}`} alt="Foto de evidencia subida" />
-      <p>Placa leída: <strong>{photo.vision.nameplate_model ?? 'no legible'}</strong> · registrada: <strong>{photo.registered_model}</strong> · confianza {Math.round(photo.vision.confidence * 100)}% · {photo.mode === 'live' ? 'EN VIVO' : 'REPETICIÓN'}</p>
-      <p className={photo.model_matches && photo.enough_confidence ? 'small' : 'notice-text'}>{photo.model_matches ? 'El modelo coincide.' : 'El modelo leído no coincide con el registrado.'} {photo.enough_confidence ? '' : 'Lectura con poca confianza.'}</p>
-      <div className="inline"><select aria-label="Refacción" value={part} onChange={(e) => setPart(e.target.value as PartType)}>{parts.map((x) => <option key={x} value={x}>{PART_LABELS[x]}</option>)}</select>
-        <button className="primary" type="button" onClick={use} disabled={busy}>Usar esta foto como evidencia</button></div>
-      <p className="muted small">La foto no autoriza una compra; el gate decide.</p></div>}
-    {result && (result.proposal_id !== null ? <p>Solicitud creada · <Link className="link" href={`/proposals/${result.proposal_id}`}>ver propuesta</Link></p> : <p className="notice-text">{result.reason}</p>)}
-    {msg && <p role="status" className="notice-text">{msg}</p>}
-  </div>;
+  const ok = !!photo && photo.model_matches && photo.enough_confidence;
+  return <>
+    <div className="step-line"><span><i />1 Encuadrar</span><span><i />2 Revisar lectura</span><span><i />3 Usar evidencia</span></div>
+    <div className="grid cols-3">
+      <section className="panel"><h2>01 / Foto de la placa</h2>
+        <div className="capture">{photo
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={`/api/photos/${photo.photo_id}`} alt="Foto de evidencia subida" /> : <EquipmentVisual />}</div>
+        <p className="capture-tip">Encuadra la placa y verifica que el modelo se lea completo.</p>
+        <form className="capture-form" onSubmit={upload}>
+          <label htmlFor={`photo-${machineId}`}>Subir archivo · {machineId}<input id={`photo-${machineId}`} name="photo" type="file" accept="image/jpeg,image/png" capture="environment" required disabled={busy} /></label>
+          <p className="muted small">JPEG o PNG, máximo 5 MB.</p>
+          <button className="primary" type="submit" disabled={busy}>{busy ? 'Procesando…' : 'Analizar foto'}</button></form></section>
+      <section className="panel"><h2>02 / Comparar</h2>
+        {photo ? <>
+          <dl><Fact label="Registrado">{registeredModel}</Fact><Fact label="Leído">{photo.vision.nameplate_model ?? 'no legible'}</Fact><Fact label="Confianza">{Math.round(photo.vision.confidence * 100)}%</Fact><Fact label="Modo">{photo.mode === 'live' ? 'EN VIVO' : 'REPETICIÓN'}</Fact></dl>
+          <p className={ok ? 'small' : 'notice-text'}>{photo.model_matches ? 'El modelo coincide.' : 'El modelo leído no coincide con el registrado.'} {photo.enough_confidence ? '' : 'Lectura con poca confianza: repite la foto.'}</p>
+          <div className="stack"><select aria-label="Refacción" value={part} onChange={(e) => setPart(e.target.value as PartType)}>{parts.map((x) => <option key={x} value={x}>{PART_LABELS[x]}</option>)}</select>
+            <button className="primary block" type="button" onClick={use} disabled={busy}>Usar esta foto como evidencia</button></div>
+          <p className="muted small">La foto no autoriza una compra; el gate decide.</p></>
+          : <p className="muted">Sube una foto para comparar el modelo leído con el registrado ({registeredModel}).</p>}
+        {result && (result.proposal_id !== null ? <p>Solicitud creada · <Link className="link" href={`/proposals/${result.proposal_id}`}>ver propuesta</Link></p> : <p className="notice-text">{result.reason}</p>)}
+        {msg && <p role="status" className="notice-text">{msg}</p>}</section>
+      <section className="panel"><h2>03 / Ayuda</h2><h3>Modelo completo y legible.</h3>
+        <p className="muted small">Evita reflejos. Incluye el nombre y sufijo del modelo: MK3S y MK3S+ son distintos.</p><Tag>Sandbox</Tag></section>
+    </div></>;
 }

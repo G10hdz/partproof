@@ -4,6 +4,6 @@ import { PageHeader, ProposalList } from '@/components/Ui';
 export const metadata = { title: 'Propuestas' };
 export default async function ProposalsPage() {
   const [proposals, sites] = await Promise.all([server.listProposals(), server.listSites()]);
-  return <><PageHeader title="Propuestas" description="Solicitudes de refacciones con su estado. Nada se paga sin aprobación humana." />
-    <section className="panel"><ProposalList proposals={proposals} sites={sites} /></section></>;
+  return <><PageHeader title="Propuesta" description="Solicitudes de refacciones con su estado. Nada se paga sin aprobación humana." />
+    <section className="panel"><h2>Solicitudes / {proposals.length}</h2><ProposalList proposals={proposals} sites={sites} /></section></>;
 }

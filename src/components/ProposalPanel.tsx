@@ -32,7 +32,10 @@ export default function ProposalPanel({ initial }: { initial: ProposalView }) {
   const quoteExpired = p.status === 'proposed' && !!p.quote && isExpired(p.quote.expiresAt, now);
   const canApprove = p.status === 'proposed' && p.verification.passed && !!p.quote && !quoteExpired;
   const co = p.checkout;
+  const symbol = p.status === 'paid' ? '✓' : p.status === 'failed' ? '×' : p.status === 'approved' ? '…' : null;
   return <section className="panel">
+    <h2>{p.status === 'paid' ? 'Pago confirmado' : p.status === 'failed' ? 'El pago falló' : p.status === 'approved' ? 'Pendiente de conciliación' : 'Cotización de reposición'}</h2>
+    {symbol && <div className="status-symbol" aria-hidden="true">{symbol}</div>}
     <Badge tone={statusTone(p.status)}>{STATUS_LABELS[p.status]}</Badge>
     {p.provider && <> <Badge>{p.provider === 'reap' ? 'REAP SANDBOX' : 'MOCK'}</Badge></>}
     {p.product ? <dl>
