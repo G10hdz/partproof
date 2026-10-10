@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { MCP_PATH, MOONRAKER_PATH, REQUEST_PART_TOOL } from '../src/server/mcp-names';
 
 interface MoonrakerState {
   machine_id: string;
@@ -13,16 +14,16 @@ export async function runKlipperAgent(options = {
   token: process.env.MCP_TOKEN ?? '',
 }) {
   if (!options.machineId || !options.token) throw new Error('MACHINE_ID y MCP_TOKEN son obligatorios');
-  const moonraker = await fetch(new URL(`/api/demo/moonraker?machine_id=${encodeURIComponent(options.machineId)}`, options.baseUrl));
+  const moonraker = await fetch(new URL(`${MOONRAKER_PATH}?machine_id=${encodeURIComponent(options.machineId)}`, options.baseUrl));
   if (!moonraker.ok) throw new Error('Moonraker no respondió para la máquina');
   const state = await moonraker.json() as MoonrakerState;
   const client = new Client({ name: 'partproof-klipper-agent', version: '1.0.0' });
-  await client.connect(new StreamableHTTPClientTransport(new URL('/api/mcp', options.baseUrl), {
+  await client.connect(new StreamableHTTPClientTransport(new URL(MCP_PATH, options.baseUrl), {
     requestInit: { headers: { authorization: `Bearer ${options.token}` } },
   }));
   try {
     return await Promise.all(state.stock.filter((part) => part.qty < part.min_qty).map((part) => client.callTool({
-      name: 'request_part',
+      name: REQUEST_PART_TOOL,
       arguments: {
         machine_id: state.machine_id,
         part_type: part.part_type,

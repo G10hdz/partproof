@@ -1,9 +1,11 @@
 // Contrato común entre backend y frontend; cambios requieren actualizar sus consumidores.
 // Flujo de pago: docs/superpowers/specs/2026-10-09-reap-payment-flow.md
-export type PartType = 'ptfe_tube' | 'thermistor' | 'accelerometer_cable' | 'nozzle';
+export const PART_TYPES = ['ptfe_tube', 'thermistor', 'accelerometer_cable', 'nozzle'] as const;
+export type PartType = (typeof PART_TYPES)[number];
 export type ProposalStatus = 'proposed' | 'approved' | 'rejected' | 'paid' | 'failed';
 export type GatePhase = 'A' | 'B';
-export type GateRule = 'evidence' | 'compat' | 'variant_exact' | 'ships_to' | 'price_cap' | 'budget' | 'quote_valid';
+export const GATE_RULES = ['evidence', 'compat', 'variant_exact', 'ships_to', 'price_cap', 'budget', 'quote_valid'] as const;
+export type GateRule = (typeof GATE_RULES)[number];
 export type ProviderMode = 'mock' | 'reap';
 export type VisionMode = 'live' | 'replay';
 
@@ -85,7 +87,8 @@ export interface ProviderQuote {
   finalAmount: Money;
   expiresAt: string;
 }
-export type CheckoutStatus = 'REQUIRES_ACTION' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
+export const CHECKOUT_STATUSES = ['REQUIRES_ACTION', 'PROCESSING', 'COMPLETED', 'FAILED', 'EXPIRED'] as const;
+export type CheckoutStatus = (typeof CHECKOUT_STATUSES)[number];
 export interface ProviderCheckout {
   id: string;
   status: CheckoutStatus;

@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
+  CHECKOUT_STATUSES,
   ProviderError,
   type CheckoutStatus,
   type Money,
@@ -21,13 +22,6 @@ const SANDBOX_ORIGINS = new Set([
 const DEFAULT_ORIGIN = 'https://sg.sandbox.api.reap.global';
 const DEFAULT_VERSION = '2025-02-14';
 const ATTEMPTS = 3;
-const CHECKOUT_STATUSES: readonly CheckoutStatus[] = [
-  'REQUIRES_ACTION',
-  'PROCESSING',
-  'COMPLETED',
-  'FAILED',
-  'EXPIRED',
-];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const HOST = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
 const VARIANT = /^[0-9A-Za-z_-]{1,64}$/;
