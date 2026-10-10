@@ -1,5 +1,5 @@
 # dependencies
-node_modules/
+node_modules
 
 # next.js
 .next/
@@ -33,3 +33,6 @@ yarn-error.log*
 
 # os
 .DS_Store
+
+# local tool indexes
+.cocoindex_code/
