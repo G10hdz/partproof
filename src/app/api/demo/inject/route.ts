@@ -1,3 +1,4 @@
+import { assertDemoMode } from '@/server/demo';
 import { server } from '@/server/api';
 import { callRequestPart, createMcpHandler } from '@/server/mcp';
 import { mcpTokenKey } from '@/server/mcp-names';
@@ -6,7 +7,8 @@ export const runtime = 'nodejs';
 
 // Envía por MCP una solicitud con una nota maliciosa de ejemplo; la nota queda en el registro y no llega al gate.
 export async function POST(request: Request) {
-  if (process.env.DEMO_MODE !== '1') return new Response(null, { status: 404 });
+  const off = assertDemoMode();
+  if (off) return off;
   const body = await request.json().catch(() => null);
   const machineId = typeof body?.machine_id === 'string' ? body.machine_id : '';
   const token = process.env[mcpTokenKey(machineId)];

@@ -1,9 +1,11 @@
+import { assertDemoMode } from '@/server/demo';
 import { server } from '@/server/api';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
-  if (process.env.DEMO_MODE !== '1') return new Response(null, { status: 404 });
+  const off = assertDemoMode();
+  if (off) return off;
   const machineId = new URL(request.url).searchParams.get('machine_id');
   const machine = (await server.listMachines()).find((candidate) => candidate.id === machineId);
   if (!machine) return Response.json({ error: 'Máquina no encontrada' }, { status: 404 });
