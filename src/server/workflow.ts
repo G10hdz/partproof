@@ -22,6 +22,8 @@ export interface WorkflowDeps {
   fx: Record<string, number>;
   now?: () => Date;
   newId?: () => string;
+  // Se llama con cada propuesta nueva (aviso a Telegram); un fallo aquí no tumba la solicitud.
+  onProposal?: (view: ProposalView) => Promise<void>;
 }
 
 const QUOTE_MARGIN_MS = 60_000;
@@ -161,6 +163,7 @@ export function createWorkflow(deps: WorkflowDeps) {
       if (view.product && allPass(view.verification.checks)) view = await priceAndGateB(view, 1);
       store.putProposal(view, 1);
       event(view.status, { proposal_id: id, phase_reached: view.verification.phase_reached });
+      await deps.onProposal?.(view).catch(() => {});
       return { proposal_id: id, status: view.status, verification: view.verification };
     },
 

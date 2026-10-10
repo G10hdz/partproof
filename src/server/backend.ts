@@ -9,6 +9,7 @@ import { callRequestPart, createMcpHandler } from './mcp';
 import { mcpTokenKey, REQUEST_PART_TOOL } from './mcp-names';
 import { getPaymentProvider } from './payments';
 import { createRealServer } from './real-server';
+import { notifyProposal } from './telegram';
 import { FX_TO_MXN } from './seed';
 import { createVision, visionFromEnv } from './vision';
 import { createWorkflow } from './workflow';
@@ -23,6 +24,7 @@ export function createBackend(env: Record<string, string | undefined> = process.
   const workflow = createWorkflow({
     store, provider, providerMode: mode, analyzePhoto: vision.analyzePhoto,
     evaluateGateA, evaluateGateB, catalog: CATALOG, fx: FX_TO_MXN,
+    onProposal: (view) => notifyProposal(view, env),
   });
   let mcp: ReturnType<typeof createMcpHandler> | null = null;
   const server = createRealServer({
