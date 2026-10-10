@@ -2,9 +2,10 @@
 // Montos y estados copiados de respuestas reales del sandbox (fixtures/reap/).
 import type {
   Company, EventView, GateCheck, LedgerRow, LedgerView, Machine, PartProofServer, Product,
-  ProposalView, ProviderQuote, RequestPartInput, RequestPartResult, Site, Stock,
+  ProposalView, ProviderQuote, RequestPartInput, RequestPartResult, Schedule, Site, Stock,
 } from '@/contracts';
 import { budgetFor, validateSettings } from '@/domain/budget';
+import { monthlyRunAfter } from '@/domain/schedule';
 
 const FX_TO_MXN: Record<string, number> = { CAD: 13.0, AUD: 12.0, MXN: 1 };
 const now = () => new Date().toISOString();
@@ -168,6 +169,7 @@ export function createFakeServer(): PartProofServer {
   let proposals = seedProposals();
   let events = seedEvents();
   let ledger: LedgerRow[] = [];
+  let schedules: Schedule[] = [];
   const polls = new Map<string, number>();
 
   const find = (id: string) => {
@@ -272,12 +274,53 @@ export function createFakeServer(): PartProofServer {
     },
     async resetDemo() {
       company = seedCompany(); machines = seedMachines(); stock = seedStock();
-      proposals = seedProposals(); events = seedEvents(); ledger = []; polls.clear();
+      proposals = seedProposals(); events = seedEvents(); ledger = []; schedules = []; polls.clear();
     },
     async createProposal(input: RequestPartInput): Promise<RequestPartResult> {
       const proposal = proposals.find((candidate) => candidate.machine_id === input.machine_id && candidate.part_type === input.part_type);
       if (!proposal) return { proposal_id: null, status: 'needs_confirmation', reason: 'No hay una propuesta de demo para esta pieza' };
       return { proposal_id: proposal.id, status: proposal.status, verification: proposal.verification };
+    },
+    async listSchedules() { return schedules; },
+    async createSchedule(input) {
+      const machine = machines.find((m) => m.id === input.machine_id);
+      if (!machine) throw new Error(`Máquina ${input.machine_id} no existe`);
+      if (!stock.some((s) => s.machine_id === machine.id && s.part_type === input.part_type)) throw new Error('La máquina no usa esa pieza');
+      const at = new Date(input.next_run);
+      if (Number.isNaN(at.getTime()) || at.toISOString().slice(0, 10) !== input.next_run.slice(0, 10)) throw new Error('Fecha inválida');
+      const s: Schedule = {
+        id: crypto.randomUUID(), machine_id: machine.id, part_type: input.part_type, next_run: at.toISOString(),
+        anchor_day: at.getUTCDate(), repeat: input.repeat, active: true, created_at: now(), last_run: null, last_result: null,
+      };
+      schedules = [...schedules, s];
+      return s;
+    },
+    async cancelSchedule(id) {
+      const s = schedules.find((x) => x.id === id);
+      if (!s) throw new Error(`Programación ${id} no existe`);
+      const next = { ...s, active: false };
+      schedules = schedules.map((x) => (x.id === id ? next : x));
+      return next;
+    },
+    // Demo en memoria: reutiliza la propuesta de demo de esa pieza en lugar de cotizar.
+    async runDueSchedules() {
+      const t = new Date();
+      const ran: Schedule[] = [];
+      schedules = schedules.map((s) => {
+        if (!s.active || Date.parse(s.next_run) > t.getTime()) return s;
+        const p = proposals.find((x) => x.machine_id === s.machine_id && x.part_type === s.part_type);
+        const done: Schedule = {
+          ...s, last_run: t.toISOString(),
+          active: s.repeat === 'monthly',
+          next_run: s.repeat === 'monthly' ? monthlyRunAfter(s.next_run, s.anchor_day, t) : s.next_run,
+          last_result: p
+            ? { status: p.status === 'rejected' ? 'rejected' : 'proposed', proposal_id: p.id, message: p.reason ?? 'Propuesta de demo' }
+            : { status: 'error', proposal_id: null, message: 'No hay una propuesta de demo para esta pieza' },
+        };
+        ran.push(done);
+        return done;
+      });
+      return ran;
     },
     async recordEvent(event) {
       events = [{ ...event, id: crypto.randomUUID(), created_at: now() }, ...events];

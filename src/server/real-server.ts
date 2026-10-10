@@ -3,9 +3,11 @@ import type { PartProofServer, PartType, VisionMode, VisionResult } from '@/cont
 import { budgetFor, validateSettings } from '@/domain/budget';
 import { normalizeModel } from '@/domain/compat';
 import type { Store } from './db';
+import { createSchedules } from './schedules';
 import { MIN_CONFIDENCE, type Workflow } from './workflow';
 
 export interface RealServerDeps {
+  now?: () => Date;
   store: Store;
   workflow: Workflow;
   providerMode: 'mock' | 'reap';
@@ -19,6 +21,7 @@ export interface RealServerDeps {
 export function createRealServer(deps: RealServerDeps): PartProofServer {
   const { store, workflow } = deps;
   if (store.isEmpty()) store.seed();
+  const schedules = createSchedules({ store, createProposal: (input) => workflow.createProposal(input), now: deps.now });
 
   return {
     async getCompany() { return store.getCompany(); },
@@ -114,6 +117,10 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
       store.seed();
     },
     createProposal: (input) => workflow.createProposal(input),
+    async listSchedules() { return schedules.list(); },
+    async createSchedule(input) { return schedules.create(input); },
+    async cancelSchedule(id) { return schedules.cancel(id); },
+    async runDueSchedules() { return schedules.runDue(); },
     async recordEvent(event) {
       store.addEvent({ ...event, id: crypto.randomUUID(), created_at: new Date().toISOString() });
     },

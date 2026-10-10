@@ -3,14 +3,14 @@
 // nunca aceptan merchant, variante ni precio desde el cliente.
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PART_TYPES, type SettingsInput, type EvidencePreview, type ProposalView, type RequestPartResult } from '@/contracts';
+import { PART_TYPES, type SettingsInput, type EvidencePreview, type ProposalView, type RequestPartResult, type Schedule } from '@/contracts';
 import { server } from '@/server/api';
 
 const Id = z.string().trim().min(1).max(100);
 const Hours = z.number().finite().min(0).max(10_000);
 const Money = z.number().finite().min(0).max(10_000_000);
 
-const PATHS = ['/', '/proposals', '/ledger', '/mcp-log', '/watch'];
+const PATHS = ['/', '/proposals', '/ledger', '/mcp-log', '/watch', '/schedules', '/settings'];
 const refresh = () => { for (const p of PATHS) revalidatePath(p); };
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -78,4 +78,25 @@ export async function submitEvidence(machineId: string, partType: string, photoI
     if (!stock) throw new Error(`La máquina ${id} no usa esa pieza`);
     return server.createProposal({ machine_id: id, part_type: part, hours_since_replace: stock.hours_since_replace, photo_id: Id.parse(photoId) });
   });
+}
+
+const ScheduleForm = z.object({
+  machine_id: Id,
+  part_type: z.enum(PART_TYPES),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  repeat: z.enum(['once', 'monthly']),
+}).strict();
+
+// La fecha llega como YYYY-MM-DD y se programa a medianoche UTC de ese día.
+export async function createSchedule(input: z.input<typeof ScheduleForm>): Promise<ActionResult<Schedule>> {
+  const v = ScheduleForm.parse(input);
+  return run(() => server.createSchedule({ machine_id: v.machine_id, part_type: v.part_type, next_run: `${v.date}T00:00:00.000Z`, repeat: v.repeat }));
+}
+
+export async function cancelSchedule(id: string): Promise<ActionResult<Schedule>> {
+  return run(() => server.cancelSchedule(Id.parse(id)));
+}
+
+export async function runSchedules(): Promise<ActionResult<Schedule[]>> {
+  return run(() => server.runDueSchedules());
 }
