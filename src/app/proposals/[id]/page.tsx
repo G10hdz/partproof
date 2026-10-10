@@ -5,6 +5,7 @@ import GateChecklist from '@/components/GateChecklist';
 import ProposalPanel from '@/components/ProposalPanel';
 import { Fact, PageHeader, Tag } from '@/components/Ui';
 import { PART_LABELS, dateTime } from '@/components/format';
+import { telegramBotUrl } from '@/server/telegram';
 
 export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,6 +22,6 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="photo" src={`/api/photos/${p.photo_id}`} alt="Foto de evidencia de la solicitud" />
           <dl><Fact label="Foto">{p.photo_id}</Fact><Fact label="Horas desde el cambio">{p.hours_since_replace} h</Fact></dl></section></div>
-      <div className="stack"><ProposalPanel key={p.id} initial={p} /><GateChecklist v={p.verification} /></div>
+      <div className="stack"><ProposalPanel key={p.id} initial={p} telegram={telegramBotUrl()} /><GateChecklist v={p.verification} /></div>
     </div></>;
 }

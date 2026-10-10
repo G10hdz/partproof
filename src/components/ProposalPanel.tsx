@@ -15,7 +15,7 @@ function Qr({ url }: { url: string }) {
   return src ? <img className="qr" src={src} alt="Código QR para aprobar el pago en Reap" /> : null;
 }
 
-export default function ProposalPanel({ initial }: { initial: ProposalView }) {
+export default function ProposalPanel({ initial, telegram = null }: { initial: ProposalView; telegram?: string | null }) {
   const [p, setP] = useState(initial);
   const [error, setError] = useState('');
   const [now, setNow] = useState(0);
@@ -53,6 +53,7 @@ export default function ProposalPanel({ initial }: { initial: ProposalView }) {
       {quoteExpired ? <button className="primary" disabled={pending} onClick={() => run(requoteProposal)}>La cotización venció · Cotizar de nuevo</button>
         : <button className="primary" disabled={!canApprove || pending} onClick={() => run((id) => approveProposal(id, approvalToken(p) ?? ''))}>{pending ? 'Procesando…' : 'Aprobar'}</button>}
       <button className="secondary" disabled={pending} onClick={() => run(rejectProposal)}>Rechazar</button></div>}
+    {canApprove && telegram && <p className="muted small">También puedes aprobar desde <a href={telegram} target="_blank" rel="noreferrer">Telegram</a>.</p>}
     {p.status === 'proposed' && !p.verification.passed && <p className="notice-text">Aprobar está bloqueado: una verificación falló.</p>}
     {p.status === 'rejected' && <p className="notice-text">Rechazada. Revisa la regla que falló a la izquierda.</p>}
 
