@@ -46,6 +46,14 @@ Las diferencias deben ser de composición y jerarquía, no tres cambios de color
 
 Cada artifact generado o actualizado se commitea automáticamente tras su comprobación, sin push automático.
 
+## Mapeo final de referencias del usuario
+
+Último grupo de seis imágenes: Flota → catálogo de productos; Detalle de máquina → producto Logitech oscuro; Resultado → cart con pieza y resumen lateral, sin editar cantidades; Propuesta → invoice con documento y resumen; Bitácora → trade history; Ajustes → formulario Settings. Estas asignaciones tienen prioridad sobre las referencias generales anteriores.
+
+Artifact implementado: `public/wireframe/index.html`, CSS y módulo JS junto al HTML. Nueve vistas × tres composiciones = 27 alternativas. Incluye comparador, encuadre móvil, variantes de bloqueo P2/P4, estados de pago confirmado/fallido/ambiguo, filtros de bitácora, selección de equipo y exportación de CSV ilustrativo. Cada pantalla es un snapshot de ejemplo, no un sistema de compras con estado persistente.
+
+Verificación: `node scripts/wireframe.test.mjs` y revisión en Chrome de las 27 vistas, aprobación bloqueada de P2/P4 y formulario móvil. Vista previa: `public/wireframe/preview.png`. Cámara, visión, MCP y pago reales no se conectan en este artifact.
+
 ## Pantallas y elementos
 
 | Vista | Pregunta del usuario | Elementos principales | Acción |
