@@ -1,0 +1,109 @@
+{
+  "id": "ba257cc0-a53f-4d33-906e-d21f104fe986",
+  "shippingOptions": [
+    {
+      "id": "ship_0",
+      "name": "Standard Shipping",
+      "selected": true,
+      "price": {
+        "amount": 6.63,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_1",
+      "name": "Expedited Parcel",
+      "selected": false,
+      "price": {
+        "amount": 11.13,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_2",
+      "name": "Xpresspost",
+      "selected": false,
+      "price": {
+        "amount": 12.46,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_3",
+      "name": "UPS Express® Saver",
+      "selected": false,
+      "price": {
+        "amount": 15.61,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_4",
+      "name": "UPS® Standard",
+      "selected": false,
+      "price": {
+        "amount": 16.07,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_5",
+      "name": "Priority",
+      "selected": false,
+      "price": {
+        "amount": 16.98,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_6",
+      "name": "UPS Express®",
+      "selected": false,
+      "price": {
+        "amount": 24.73,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_7",
+      "name": "FedEx Ground®",
+      "selected": false,
+      "price": {
+        "amount": 25.04,
+        "currency": "CAD"
+      }
+    },
+    {
+      "id": "ship_8",
+      "name": "FedEx 2Day®",
+      "selected": false,
+      "price": {
+        "amount": 73.52,
+        "currency": "CAD"
+      }
+    }
+  ],
+  "amountBreakdown": {
+    "itemsSubtotal": {
+      "amount": 19.99,
+      "currency": "CAD"
+    },
+    "shipping": {
+      "amount": 6.63,
+      "currency": "CAD"
+    },
+    "tax": {
+      "amount": {
+        "amount": 3.46,
+        "currency": "CAD"
+      }
+    },
+    "discounts": [],
+    "additionalCharges": [],
+    "finalAmount": {
+      "amount": 30.08,
+      "currency": "CAD"
+    }
+  },
+  "expiresAt": "2026-10-10T03:01:47.206Z"
+}

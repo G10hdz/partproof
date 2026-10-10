@@ -1,0 +1,19 @@
+{
+  "id": "201c7637-d3db-4155-82bc-8bd415cb329b",
+  "status": "ACTIVE",
+  "owner": {
+    "type": "CLIENT_REFERENCE",
+    "id": "forja3d-mx",
+    "email": "ops@forja3d.mx"
+  },
+  "paymentMethod": {
+    "type": "CARD",
+    "network": "VISA",
+    "last4": "1662",
+    "expiryMonth": 12,
+    "expiryYear": 2030
+  },
+  "nextAction": null,
+  "createdAt": "2026-10-10T02:49:43.875Z",
+  "updatedAt": "2026-10-10T02:52:32.699Z"
+}

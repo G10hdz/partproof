@@ -1,0 +1,15 @@
+{
+  "id": "201c7637-d3db-4155-82bc-8bd415cb329b",
+  "status": "REQUIRES_ACTION",
+  "nextAction": {
+    "type": "REDIRECT",
+    "url": "https://sandbox.collect.prava.space?session=ses_REDACTED",
+    "expiresAt": "2026-10-10T03:04:43.872Z"
+  },
+  "source": "EXTERNAL",
+  "owner": {
+    "type": "CLIENT_REFERENCE",
+    "id": "forja3d-mx",
+    "email": "ops@forja3d.mx"
+  }
+}
