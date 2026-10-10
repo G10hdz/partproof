@@ -30,6 +30,8 @@ export interface Company {
   monthly_budget: number;
   purchase_cap: number;
   billing_email: string;
+  // Presupuesto distinto para meses concretos ('YYYY-MM' en UTC); un mes sin entrada usa monthly_budget.
+  budget_overrides?: Record<string, number>;
 }
 export interface Site {
   id: string;
@@ -221,6 +223,13 @@ export interface EvidencePreview {
   enough_confidence: boolean;
 }
 
+export interface SettingsInput {
+  monthly_budget: number;
+  purchase_cap: number;
+  // Si se omite se conservan las excepciones actuales; un objeto vacío las borra.
+  budget_overrides?: Record<string, number>;
+}
+
 export interface PartProofServer {
   getCompany(): Promise<Company>;
   listSites(): Promise<Site[]>;
@@ -241,7 +250,7 @@ export interface PartProofServer {
   previewEvidence(machineId: string, photoId: string): Promise<EvidencePreview>;
   rejectProposal(id: string): Promise<ProposalView>;
   advanceHours(machineId: string, hours: number): Promise<void>;
-  saveSettings(input: { monthly_budget: number; purchase_cap: number }): Promise<void>;
+  saveSettings(input: SettingsInput): Promise<void>;
   resetDemo(): Promise<void>;
   createProposal(input: RequestPartInput): Promise<RequestPartResult>;
   recordEvent(event: Omit<EventView, 'id' | 'created_at'>): Promise<void>;
