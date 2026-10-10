@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 330" width="1000" height="330" font-family="'Geist', -apple-system, 'Helvetica Neue', 'Noto Sans CJK SC', sans-serif">
+  <style>
+    .n{fill:#ffffff;stroke:#c5c4d4;stroke-width:1}
+    .f{fill:rgba(124,92,240,0.08);stroke:#7c5cf0;stroke-width:1.4}
+    .r{fill:#f7f7f9;stroke:#9a9db2;stroke-width:1;stroke-dasharray:4,3}
+    .name{font-size:12px;font-weight:600;fill:#26233d}
+    .sub{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:9px;fill:#5d6478}
+    .eye{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:8px;letter-spacing:0.16em;fill:#9a9db2}
+    .e{fill:none;stroke:#5d6478;stroke-width:1.2}
+    .d{fill:none;stroke:#9a9db2;stroke-width:1;stroke-dasharray:4,3}
+    .call{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-size:14px;fill:#5d6478}
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5d6478"/></marker>
+    <marker id="b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9a9db2"/></marker>
+  </defs>
+  <rect width="1000" height="330" fill="#f7f7f9"/>
+  <text x="500" y="26" class="eye" text-anchor="middle">FLUJO · DE LA SOLICITUD AL LIBRO</text>
+
+  <path class="e" d="M155,102 H183" marker-end="url(#a)"/>
+  <path class="e" d="M319,102 H347" marker-end="url(#a)"/>
+  <path class="e" d="M483,102 H511" marker-end="url(#a)"/>
+  <path class="e" d="M647,102 H675" marker-end="url(#a)"/>
+  <path class="e" d="M811,102 H839" marker-end="url(#a)"/>
+  <path class="d" d="M254,134 V194" marker-end="url(#b)"/>
+  <path class="d" d="M418,134 V194" marker-end="url(#b)"/>
+  <path class="d" d="M582,134 V194" marker-end="url(#b)"/>
+
+  <rect class="n" x="25" y="70" width="130" height="64" rx="6"/>
+  <text x="90" y="94" class="name" text-anchor="middle">request_part</text>
+  <text x="90" y="110" class="sub" text-anchor="middle">MCP · token por</text>
+  <text x="90" y="122" class="sub" text-anchor="middle">máquina</text>
+
+  <rect class="f" x="189" y="70" width="130" height="64" rx="6"/>
+  <text x="254" y="94" class="name" text-anchor="middle">Fase A · sin red</text>
+  <text x="254" y="110" class="sub" text-anchor="middle">evidencia · compat</text>
+  <text x="254" y="122" class="sub" text-anchor="middle">variante · envío</text>
+
+  <rect class="n" x="353" y="70" width="130" height="64" rx="6"/>
+  <text x="418" y="94" class="name" text-anchor="middle">Quote de Reap</text>
+  <text x="418" y="110" class="sub" text-anchor="middle">finalAmount con</text>
+  <text x="418" y="122" class="sub" text-anchor="middle">envío e impuestos</text>
+
+  <rect class="f" x="517" y="70" width="130" height="64" rx="6"/>
+  <text x="582" y="94" class="name" text-anchor="middle">Fase B</text>
+  <text x="582" y="110" class="sub" text-anchor="middle">tope · presupuesto</text>
+  <text x="582" y="122" class="sub" text-anchor="middle">vigencia</text>
+
+  <rect class="n" x="681" y="70" width="130" height="64" rx="6"/>
+  <text x="746" y="94" class="name" text-anchor="middle">Aprobación</text>
+  <text x="746" y="110" class="sub" text-anchor="middle">persona en página</text>
+  <text x="746" y="122" class="sub" text-anchor="middle">hosted de Reap</text>
+
+  <rect class="n" x="845" y="70" width="130" height="64" rx="6"/>
+  <text x="910" y="94" class="name" text-anchor="middle">Libro</text>
+  <text x="910" y="110" class="sub" text-anchor="middle">COMPLETED · orderId</text>
+  <text x="910" y="122" class="sub" text-anchor="middle">costo por máquina</text>
+
+  <rect class="r" x="189" y="200" width="130" height="64" rx="6"/>
+  <text x="254" y="224" class="name" text-anchor="middle">Rechazo fase A</text>
+  <text x="254" y="240" class="sub" text-anchor="middle">P2: placa MK3S</text>
+  <text x="254" y="252" class="sub" text-anchor="middle">nota inyectada: dato</text>
+
+  <rect class="r" x="353" y="200" width="130" height="64" rx="6"/>
+  <text x="418" y="224" class="name" text-anchor="middle">Rechazo de Reap</text>
+  <text x="418" y="240" class="sub" text-anchor="middle">P3: Guadalajara</text>
+  <text x="418" y="252" class="sub" text-anchor="middle">ITEMS_UNSHIPPABLE</text>
+
+  <rect class="r" x="517" y="200" width="130" height="64" rx="6"/>
+  <text x="582" y="224" class="name" text-anchor="middle">Rechazo fase B</text>
+  <text x="582" y="240" class="sub" text-anchor="middle">P4: 1326 MXN</text>
+  <text x="582" y="252" class="sub" text-anchor="middle">tope 1000 MXN</text>
+
+  <text x="500" y="302" class="call" text-anchor="middle">Si la fase A falla, no hay llamada a Reap. El LLM solo lee la foto; nunca ve datos de pago.</text>
+</svg>
