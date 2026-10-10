@@ -31,7 +31,7 @@ export interface StoredProposal { view: ProposalView; attempt: number }
 
 export function openStore(path = ':memory:') {
   const db = new DatabaseSync(path);
-  db.exec('PRAGMA foreign_keys = ON;');
+  db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
 
   const tx = <T>(fn: () => T): T => {
