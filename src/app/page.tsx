@@ -3,7 +3,7 @@ import { server } from '@/server/api';
 import EquipmentVisual from '@/components/EquipmentVisual';
 import { AdvanceHours, ResetDemo } from '@/components/DemoControls';
 import { Fact, PageHeader, ProposalList, Tag } from '@/components/Ui';
-import { PART_LABELS, latestProposalFor, lifePercent, money } from '@/components/format';
+import { PART_LABELS, latestProposalFor, money } from '@/components/format';
 
 export default async function FleetPage() {
   const [machines, sites, stock, proposals, modes, ledger] = await Promise.all([server.listMachines(), server.listSites(), server.listStock(), server.listProposals(), server.getModes(), server.getLedger()]);
@@ -28,7 +28,7 @@ export default async function FleetPage() {
       </div>
       <div className="stack">
         <section className="panel"><h2>Reposición pendiente</h2>{pending ? <><Tag>Stock bajo</Tag><h3 style={{ marginTop: 18 }}>{PART_LABELS[pending.part_type]}</h3>
-          <dl><Fact label="Stock / mínimo">{pending.qty} / {pending.min_qty}</Fact><Fact label="Máquina">{pending.machine_id}</Fact><Fact label="Vida usada">{lifePercent(pending.hours_since_replace, pending.rated_life_hours)}%</Fact></dl></> : <p className="muted">Todo el stock está sobre el mínimo.</p>}</section>
+          <dl><Fact label="Stock / mínimo">{pending.qty} / {pending.min_qty}</Fact><Fact label="Máquina">{pending.machine_id}</Fact><Fact label="Horas desde cambio">{pending.hours_since_replace} / {pending.rated_life_hours} h</Fact></dl></> : <p className="muted">Todo el stock está sobre el mínimo.</p>}</section>
         <section className="panel"><h2>Presupuesto del mes</h2><p className="eyebrow">Gasto del mes</p><p className="big-number">{money(ledger.monthly_total, ledger.currency)}</p>
           <div className="progress"><span style={{ width: `${pct}%` }} /></div><dl><Fact label="Presupuesto">{money(ledger.monthly_budget, ledger.currency)}</Fact><Fact label="Disponible">{money(Math.max(0, ledger.monthly_budget - ledger.monthly_total), ledger.currency)}</Fact></dl></section>
         {modes.demo && <ResetDemo />}
