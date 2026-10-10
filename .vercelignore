@@ -1,0 +1,9 @@
+# Nunca subir secretos ni datos locales.
+.env
+.env.*
+!.env.example
+.data
+data
+.next
+node_modules
+.cocoindex_code
