@@ -2,6 +2,16 @@
 
 Estado: propuesta visual para diseñar el recorrido; no cambia el funcionamiento de los specs técnicos.
 
+## Decisión aprobada: opción C
+
+El usuario eligió C para implementación en todas las pantallas. Esta decisión sustituye la comparación de alternativas: A y B se conservan solo como historial de exploración. No volver a elegir una composición distinta por pantalla.
+
+C usa lateral carbón, contenido claro, pieza/equipo o estado como foco principal y columna de resumen contextual. En móvil la composición se apila sin perder evidencia, razones de bloqueo ni acción principal. Aprobación incluye el formato compacto de reloj mostrado en C.
+
+Fuente visual de entrega: `public/wireframe/agents.html` (solo C, selector de responsable, nueve vistas y escenarios). Reutiliza el renderer y CSS del comparador; no existe una segunda implementación divergente. Las anotaciones fuera del frame describen contratos y responsabilidades; no se llevan a la app.
+
+El artifact sigue siendo un wireframe: sus snapshots y mensajes simulados no sustituyen SQLite, los siete checks ni la aprobación humana. Cada agente debe convertir su parte en datos/comportamiento real según el spec técnico, conservando la composición C.
+
 ## Dirección visual
 
 - Referencia 6: base crema, texto carbón, números grandes, filas con divisores finos y naranja como acento. Es la base de identidad.

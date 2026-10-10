@@ -30,3 +30,5 @@ node scripts/wireframe.test.mjs
 ```
 
 También se sirve desde `/wireframe/index.html` con `npm run dev`. No abrir con `file://`: el navegador necesita servir el módulo JavaScript por HTTP.
+
+Diseño elegido: **C en todas las pantallas**. Entrega a los seis agentes: `/wireframe/agents.html?agent=1` con Next.js, o `http://127.0.0.1:4318/agents.html?agent=1` con el servidor anterior. Cambiar `agent=1..6` o usar el selector; cada responsable ve sus pantallas relevantes, entregable y criterio de aceptación. A/B quedan archivadas en el comparador. Guía: [handoff C](docs/superpowers/specs/2026-10-09-option-c-agent-handoff.md).

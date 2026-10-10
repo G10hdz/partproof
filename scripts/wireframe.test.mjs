@@ -1,8 +1,16 @@
 import assert from 'node:assert/strict';
-import { SCREENS, VARIANTS, renderScreen } from '../public/wireframe/wireframe.mjs';
+import { SCREENS, VARIANTS, AGENT_HANDOFFS, renderScreen } from '../public/wireframe/wireframe.mjs';
 
 assert.equal(SCREENS.length,9);
 assert.equal(VARIANTS.length,3);
+assert.equal(AGENT_HANDOFFS.length,6);
+for(const agent of AGENT_HANDOFFS){
+  assert.ok(agent.deliver&&agent.check);
+  for(const screen of agent.screens){
+    assert.ok(SCREENS.some(([id])=>id===screen));
+    assert.ok(renderScreen(screen,'c').includes('variant-c'));
+  }
+}
 for(const [screen] of SCREENS){
   const outputs=VARIANTS.map(v=>renderScreen(screen,v));
   assert.equal(new Set(outputs).size,3,`${screen}: tres composiciones distintas`);

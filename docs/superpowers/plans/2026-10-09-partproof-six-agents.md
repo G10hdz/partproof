@@ -22,6 +22,7 @@
 - No adaptar Reap con endpoints ni formatos de llave inventados. Sin documentación y llave confirmadas se queda MOCK; no cumple el punto 1 del hackathon.
 - Dinero: convertir a unidades menores con redondeo explícito al comparar y registrar. No cambiar los campos públicos del spec; tolerar cero, rechazar negativos, NaN e infinitos.
 - `src/contracts.ts` es la frontera común. Solo el integrador acepta cambios coordinados; los seis agentes lo consumen.
+- Diseño aprobado por el usuario: opción C en todas las vistas. Artifact de entrega: `public/wireframe/agents.html`. A/B no se implementan. Leer [handoff de los seis agentes](../specs/2026-10-09-option-c-agent-handoff.md) antes de Task 1–6.
 - Todos los endpoints y módulos SQLite/MCP/visión/pagos usan runtime Node. Demo se ejecuta con `next start` y disco persistente.
 - Cada agente es dueño de sus pruebas junto al módulo. Solo agente 1 modifica manifiesto, lockfile y configuración de tests.
 
@@ -176,6 +177,8 @@ it('no solicita stock en mínimo', () => {
 **Modify:** shell y componentes propios. **Consumes:** queries y acciones del agente 1. **Produces:** seis pantallas responsive con datos reales de SQLite.
 
 **Referencia de recorrido y diseño:** [Mockup de interfaz](../specs/2026-10-09-interface-mockup.md). Sus vistas de detalle/captura/aprobación/resultado son estados o subviews de las rutas existentes.
+
+Implementar exclusivamente C: lateral oscuro, foco principal y contexto secundario; apilar en móvil. Las notas del selector de agente y controles del wireframe no se incorporan al producto. Las imágenes esquemáticas no cuentan como evidencia.
 
 - [ ] Conectar Flota a `listMachines/listStock`, avance de horas a Server Action; Propuestas a `listProposals/getProposal`; Libro a `getLedger`; ajustes a `saveSettings`; Registro a `listEvents`; reloj a `getProposal/approveProposal`.
 - [ ] No crear rutas JSON para duplicar Server Components. Nunca importar DB/SDK en componentes cliente. Formularios accesibles, foco visible, mensajes de éxito/error y submit deshabilitado durante operación.

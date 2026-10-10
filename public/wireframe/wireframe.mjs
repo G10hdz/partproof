@@ -10,6 +10,14 @@ export const SCREENS = [
   ['ajustes','Ajustes','Formulario con secciones y ayuda contextual. Referencia de Settings.'],
 ];
 export const VARIANTS = ['a','b','c'];
+export const AGENT_HANDOFFS = [
+  {id:'1',name:'Datos e integración',host:'Mac',screens:['flota','maquina','libro','ajustes'],deliver:'DTO y acciones de operador: stock, propuestas, presupuesto y compras persistentes.',check:'Una sola compra y aumento de stock después de pago confirmado. Importes del libro en MXN.'},
+  {id:'2',name:'Gate determinista',host:'Mac',screens:['propuesta','aprobacion'],deliver:'Siete verificaciones con boolean y razón legible; revalidación al aprobar y pagar.',check:'P1 pasa; P2 falla compatibilidad exacta; P4 falla envío. La UI y el servidor bloquean.'},
+  {id:'3',name:'Interfaz de usuario',host:'Mac',screens:SCREENS.map(([id])=>id),deliver:'Composición C en las nueve vistas, móvil y reloj; conectar queries y acciones de C1.',check:'Mantener jerarquía, foco principal y contexto. Estados de carga/error/vacío y navegación accesible.'},
+  {id:'4',name:'MCP y Klipper',host:'Pop',screens:['bitacora','flota','propuesta'],deliver:'Solicitud automática autenticada por máquina, registro de eventos y notas como datos.',check:'Una solicitud abierta por máquina/pieza. Texto malicioso no compra; tokens nunca visibles.'},
+  {id:'5',name:'Visión y evidencia',host:'Pop',screens:['evidencia','maquina','propuesta'],deliver:'Foto vinculada a máquina, modelo/hotend leídos, confianza y modo live/replay.',check:'Confianza baja o modelo ausente pide nueva evidencia. No inferir desgaste ni analizar esquemas como fotos.'},
+  {id:'6',name:'Pagos',host:'Pop',screens:['aprobacion','resultado','libro'],deliver:'Proveedor explícito, referencia e importe confirmados, idempotencia y conciliación.',check:'Fallo y resultado ambiguo son distintos. No duplicar pago ni aumentar stock sin confirmación.'},
+];
 const TITLES = {
   flota:['Catálogo de equipos','Lista con ficha lateral','Equipo prioritario + flota'],
   maquina:['Producto y especificaciones','Ficha técnica estructurada','Equipo sobre fondo oscuro'],
@@ -158,12 +166,24 @@ export function renderScreen(screen,variant,state={machine:'P1',payment:'paid'})
 
 if(typeof document!=='undefined'){
   const el=id=>document.getElementById(id);
+  const handoff=document.body.dataset.handoff==='c';
+  const requestedAgent=new URLSearchParams(location.search).get('agent');
+  let selectedAgent=AGENT_HANDOFFS.find(a=>a.id===requestedAgent)??AGENT_HANDOFFS[0];
   const initial=location.hash.slice(1);
-  const state={screen:SCREENS.some(([id])=>id===initial)?initial:'flota',variant:'a',machine:'P1',payment:'paid',mobile:false,compare:false};
+  const state={screen:SCREENS.some(([id])=>id===initial)?initial:handoff?selectedAgent.screens[0]:'flota',variant:'c',machine:'P1',payment:'paid',mobile:false,compare:false};
   el('screen').innerHTML=SCREENS.map(([id,label],i)=>`<option value="${id}">0${i+1} / ${label}</option>`).join('');
+  if(handoff){
+    el('agent').innerHTML=AGENT_HANDOFFS.map(a=>`<option value="${a.id}">${a.id} / ${a.name} · ${a.host}</option>`).join('');
+    el('agent').value=selectedAgent.id;
+    el('agent').addEventListener('change',event=>{selectedAgent=AGENT_HANDOFFS.find(a=>a.id===event.target.value);state.screen=selectedAgent.screens[0];render();});
+  }
   let noticeTimer;
   const notify=text=>{el('notice').textContent=text;el('notice').classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>el('notice').classList.remove('visible'),3500);};
   function render(){
+    if(handoff){
+      state.variant='c';state.compare=false;
+      el('agent-brief').innerHTML=`<div><p class="eyebrow">HANDOFF / AGENTE ${selectedAgent.id} / ${selectedAgent.host}</p><h2>${selectedAgent.name}</h2><p>${selectedAgent.deliver}</p></div><div><p class="eyebrow">CRITERIO DE ENTREGA</p><p>${selectedAgent.check}</p><div class="agent-links">${selectedAgent.screens.map(id=>button(SCREENS.find(([key])=>key===id)[1],id,'quiet')).join('')}</div></div>`;
+    }
     const selected=SCREENS.find(([id])=>id===state.screen);
     el('review-title').textContent=selected[1];el('review-description').textContent=selected[2];el('screen').value=state.screen;
     el('journey').innerHTML=SCREENS.map(([id,label],i)=>`<button data-go="${id}" ${id===state.screen?'aria-current="page"':''}><span>0${i+1}</span>${label}</button>`).join('');
@@ -172,7 +192,7 @@ if(typeof document!=='undefined'){
     if(state.mobile)el('frames').querySelectorAll('.frame').forEach(frame=>frame.classList.add('screen-mobile'));
     document.querySelectorAll('[data-option]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.option===state.variant)));
     el('size').setAttribute('aria-pressed',String(state.mobile));el('size').textContent=state.mobile?'Vista escritorio':'Vista móvil';
-    history.replaceState(null,'','#'+state.screen);
+    history.replaceState(null,'',handoff?'?agent='+selectedAgent.id+'#'+state.screen:'#'+state.screen);
   }
   document.addEventListener('click',event=>{
     const go=event.target.closest('[data-go]');

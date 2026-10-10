@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PartProof · Opción C aprobada · Entrega a agentes</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body data-handoff="c">
+  <header class="review-bar">
+    <a class="review-brand" href="#flota">PARTPROOF <span>C / DISEÑO APROBADO</span></a>
+    <label>Responsable <select id="agent"></select></label>
+    <label>Pantalla <select id="screen"></select></label>
+    <span class="tag good">Opción C · Implementar</span>
+    <button id="size" aria-pressed="false">Vista móvil</button>
+    <input id="compare" type="checkbox" hidden disabled>
+  </header>
+  <main class="review-main">
+    <section id="agent-brief" class="agent-brief" aria-label="Entrega del agente"></section>
+    <div class="review-heading"><div><p class="eyebrow">RECORRIDO DEL TÉCNICO / FORJA3D MX</p><h1 id="review-title"></h1></div><p id="review-description"></p></div>
+    <nav id="journey" class="journey" aria-label="Pantallas del recorrido"></nav>
+    <div class="scenario-bar">
+      <label>Solicitud <select id="machine"><option value="P1">P1 · Cable · Permitida</option><option value="P2">P2 · PTFE · Incompatible</option><option value="P3">P3 · PTFE · Compatible</option><option value="P4">P4 · Boquilla · Sin envío</option></select></label>
+      <label>Resultado ilustrativo <select id="payment"><option value="paid">Pago confirmado</option><option value="failed">Pago fallido</option><option value="pending">Pendiente de conciliación</option></select></label>
+      <p>Wireframe de entrega · Snapshots de ejemplo · Sin integraciones reales</p>
+    </div>
+    <section id="frames" aria-label="Diseño C aprobado"></section>
+    <p class="review-footnote">La opción C es la fuente visual de implementación. Las anotaciones del responsable no forman parte de la app.</p>
+  </main>
+  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+  <script type="module" src="wireframe.mjs"></script>
+</body>
+</html>
