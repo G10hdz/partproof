@@ -72,7 +72,7 @@ function mediaTypeOf(bytes: Buffer): MediaType {
 }
 
 // Solo resuelve ids contra los archivos que ya existen en photosDir; nunca rutas ni URLs.
-async function readPhoto(photosDir: string, photoId: string) {
+export async function readPhoto(photosDir: string, photoId: string) {
   if (!PHOTO_ID.test(photoId)) throw new Error('vision: photo_id inválido');
   const name = (await readdir(photosDir)).find((f) => {
     const ext = path.extname(f);
