@@ -78,7 +78,7 @@ export default function ProposalPanel({ initial, telegram = null }: { initial: P
       <button className="secondary" disabled={pending} onClick={() => run(rejectProposal)}>Rechazar</button></div>}
     {canApprove && telegram && <p className="muted small">También puedes aprobar desde <a href={telegram} target="_blank" rel="noreferrer">Telegram</a>.</p>}
     {p.status === 'proposed' && !p.verification.passed && <p className="notice-text">Aprobar está bloqueado: una verificación falló.</p>}
-    {p.status === 'rejected' && <p className="notice-text">Rechazada. Revisa la regla que falló a la izquierda.</p>}
+    {p.status === 'rejected' && p.verification.checks.some((c) => !c.passed) && <p className="notice-text">Revisa la regla marcada en Verificaciones.</p>}
 
     {p.status === 'approved' && co?.status === 'REQUIRES_ACTION' && co.approvalUrl && <div>
       <p><strong>Aprueba en Reap desde tu teléfono.</strong></p><Qr url={co.approvalUrl} />
