@@ -223,6 +223,28 @@ export interface EvidencePreview {
   enough_confidence: boolean;
 }
 
+export type ScheduleRepeat = 'once' | 'monthly';
+export type ScheduleOutcome = 'proposed' | 'rejected' | 'skipped' | 'error';
+// Compra programada: al vencer crea una propuesta; nunca paga por su cuenta.
+export interface Schedule {
+  id: string;
+  machine_id: string;
+  part_type: PartType;
+  next_run: string;      // ISO UTC
+  anchor_day: number;    // día del mes de la fecha original; evita que 31 ene -> 28 feb -> 28 mar
+  repeat: ScheduleRepeat;
+  active: boolean;
+  created_at: string;
+  last_run: string | null;
+  last_result: { status: ScheduleOutcome; proposal_id: string | null; message: string } | null;
+}
+export interface ScheduleInput {
+  machine_id: string;
+  part_type: PartType;
+  next_run: string;      // ISO UTC; la UI manda medianoche UTC del día elegido
+  repeat: ScheduleRepeat;
+}
+
 export interface SettingsInput {
   monthly_budget: number;
   purchase_cap: number;
@@ -254,4 +276,9 @@ export interface PartProofServer {
   resetDemo(): Promise<void>;
   createProposal(input: RequestPartInput): Promise<RequestPartResult>;
   recordEvent(event: Omit<EventView, 'id' | 'created_at'>): Promise<void>;
+  listSchedules(): Promise<Schedule[]>;
+  createSchedule(input: ScheduleInput): Promise<Schedule>;
+  cancelSchedule(id: string): Promise<Schedule>;
+  // Crea la propuesta de cada programación vencida. Seguro de repetir: cada una se reserva antes de cotizar.
+  runDueSchedules(): Promise<Schedule[]>;
 }
