@@ -4,6 +4,7 @@ import type {
   Company, EventView, GateCheck, LedgerRow, LedgerView, Machine, PartProofServer, Product,
   ProposalView, ProviderQuote, RequestPartInput, RequestPartResult, Site, Stock,
 } from '@/contracts';
+import { budgetFor, validateSettings } from '@/domain/budget';
 
 const FX_TO_MXN: Record<string, number> = { CAD: 13.0, AUD: 12.0, MXN: 1 };
 const now = () => new Date().toISOString();
@@ -212,7 +213,7 @@ export function createFakeServer(): PartProofServer {
     async getLedger(): Promise<LedgerView> {
       const monthly_total = round2(ledger.reduce((s, r) => s + r.amount_company, 0));
       return {
-        rows: ledger, monthly_total, monthly_budget: company.monthly_budget, currency: company.currency,
+        rows: ledger, monthly_total, monthly_budget: budgetFor(company, new Date()), currency: company.currency,
         cost_per_hour: machines.map((m) => {
           const spent = ledger.filter((r) => r.machine_id === m.id).reduce((s, r) => s + r.amount_company, 0);
           return { machine_id: m.id, amount: m.hours_total > 0 ? round2(spent / m.hours_total) : null };
@@ -263,7 +264,11 @@ export function createFakeServer(): PartProofServer {
       stock = stock.map((s) => (s.machine_id === machineId ? { ...s, hours_since_replace: s.hours_since_replace + hours } : s));
     },
     async saveSettings(input) {
-      company = { ...company, monthly_budget: input.monthly_budget, purchase_cap: input.purchase_cap };
+      validateSettings(input);
+      company = {
+        ...company, monthly_budget: input.monthly_budget, purchase_cap: input.purchase_cap,
+        budget_overrides: input.budget_overrides ?? company.budget_overrides ?? {},
+      };
     },
     async resetDemo() {
       company = seedCompany(); machines = seedMachines(); stock = seedStock();

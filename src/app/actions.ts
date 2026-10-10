@@ -3,7 +3,7 @@
 // nunca aceptan merchant, variante ni precio desde el cliente.
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PART_TYPES, type EvidencePreview, type ProposalView, type RequestPartResult } from '@/contracts';
+import { PART_TYPES, type SettingsInput, type EvidencePreview, type ProposalView, type RequestPartResult } from '@/contracts';
 import { server } from '@/server/api';
 
 const Id = z.string().trim().min(1).max(100);
@@ -47,8 +47,12 @@ export async function advanceHours(machineId: string, hours: number): Promise<Ac
   return run(async () => { await server.advanceHours(Id.parse(machineId), Hours.parse(hours)); return null; });
 }
 
-export async function saveSettings(input: { monthly_budget: number; purchase_cap: number }): Promise<ActionResult<null>> {
-  const parsed = z.object({ monthly_budget: Money, purchase_cap: Money }).strict().parse(input);
+export async function saveSettings(input: SettingsInput): Promise<ActionResult<null>> {
+  const parsed = z.object({
+    monthly_budget: Money,
+    purchase_cap: Money,
+    budget_overrides: z.record(z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/), Money).optional(),
+  }).strict().parse(input);
   return run(async () => { await server.saveSettings(parsed); return null; });
 }
 

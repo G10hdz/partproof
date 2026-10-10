@@ -1,5 +1,6 @@
 // PartProofServer real: SQLite más el workflow. La UI lo consume a través de src/server/api.ts.
 import type { PartProofServer, PartType, VisionMode, VisionResult } from '@/contracts';
+import { budgetFor, validateSettings } from '@/domain/budget';
 import { normalizeModel } from '@/domain/compat';
 import type { Store } from './db';
 import { MIN_CONFIDENCE, type Workflow } from './workflow';
@@ -35,7 +36,7 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
       const total = (machineId?: string) =>
         Math.round(rows.filter((r) => !machineId || r.machine_id === machineId).reduce((s, r) => s + r.amount_company, 0) * 100) / 100;
       return {
-        rows, monthly_total: workflow.monthlySpend(), monthly_budget: company.monthly_budget, currency: company.currency,
+        rows, monthly_total: workflow.monthlySpend(), monthly_budget: budgetFor(company, new Date()), currency: company.currency,
         cost_per_hour: store.listMachines().map((m) => ({
           machine_id: m.id, amount: m.hours_total > 0 ? Math.round((total(m.id) / m.hours_total) * 100) / 100 : null,
         })),
@@ -100,9 +101,12 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
     },
 
     async saveSettings(input) {
-      const ok = (n: number) => Number.isFinite(n) && n >= 0;
-      if (!ok(input.monthly_budget) || !ok(input.purchase_cap)) throw new Error('Presupuesto o tope inválido');
-      store.putCompany({ ...store.getCompany(), ...input });
+      validateSettings(input);
+      const company = store.getCompany();
+      store.putCompany({
+        ...company, monthly_budget: input.monthly_budget, purchase_cap: input.purchase_cap,
+        budget_overrides: input.budget_overrides ?? company.budget_overrides ?? {},
+      });
     },
 
     async resetDemo() {
