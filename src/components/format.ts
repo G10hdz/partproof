@@ -15,5 +15,8 @@ export const dateTime = (iso: string) => new Intl.DateTimeFormat('es-MX', { date
 export const gateCheck = (checks: GateCheck[], rule: GateRule) => checks.find((c) => c.rule === rule);
 export const isExpired = (iso: string | null | undefined, now: number) => !!iso && Date.parse(iso) <= now;
 export const lifePercent = (since: number, rated: number) => Math.min(100, Math.round((since / rated) * 100));
+export function latestProposalFor<T extends { machine_id: string }>(_proposals: T[], _machineId: string | undefined): T | undefined {
+  return undefined;
+}
 // Las programaciones guardan medianoche UTC; mostrarlas en zona de México correría el día.
 export const dateOnly = (iso: string) => new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(iso));

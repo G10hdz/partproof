@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dateOnly, gateCheck, isExpired, lifePercent, money } from './format';
+import { dateOnly, gateCheck, isExpired, latestProposalFor, lifePercent, money } from './format';
 
 describe('format', () => {
   it('dateOnly muestra el día UTC sin correrlo por zona horaria', () => {
@@ -16,5 +16,15 @@ describe('format', () => {
     expect(lifePercent(750, 1500)).toBe(50);
     expect(money({ amount: 32.34, currency: 'CAD' })).toContain('32.34');
     expect(gateCheck([], 'budget')).toBeUndefined();
+  });
+  it('latestProposalFor devuelve la más reciente de esa máquina, no de otra', () => {
+    const proposals = [
+      { id: 'nueva-p4', machine_id: 'P4' },
+      { id: 'nueva-p1', machine_id: 'P1' },
+      { id: 'vieja-p1', machine_id: 'P1' },
+    ];
+    expect(latestProposalFor(proposals, 'P1')?.id).toBe('nueva-p1');
+    expect(latestProposalFor(proposals, 'P9')).toBeUndefined();
+    expect(latestProposalFor(proposals, undefined)).toBeUndefined();
   });
 });
