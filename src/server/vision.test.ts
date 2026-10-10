@@ -5,7 +5,7 @@ import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import type { VisionResult } from '@/contracts';
-import { createVision, SYSTEM_PROMPT, visionFromEnv, visionResultSchema, type MessagesClient } from './vision';
+import { createOpenRouterAnalyzer, createVision, SYSTEM_PROMPT, visionFromEnv, visionResultSchema, type MessagesClient } from './vision';
 
 const JPEG = (tag: string) => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.from(tag)]);
 const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
@@ -133,5 +133,43 @@ describe('demo/', () => {
       expect(hashes.has(hash)).toBe(true);
       expect(visionResultSchema.safeParse((entry as { result: unknown }).result).success).toBe(true);
     }
+  });
+});
+
+describe('OpenRouter (Gemini)', () => {
+  const reply = (content: unknown, status = 200) => vi.fn(async () =>
+    new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status }));
+
+  it('manda solo la imagen como mensaje del usuario y fuerza el schema estricto', async () => {
+    const fetchImpl = reply(JSON.stringify(STICKER));
+    const analyzer = createOpenRouterAnalyzer({ apiKey: 'k', model: 'google/gemini-3.8-flash', fetchImpl });
+    const vision = createVision({ mode: 'live', model: 'google/gemini-3.8-flash', analyzer, ...(await fixture()) });
+    await expect(vision.analyzePhoto('plate_p2')).resolves.toEqual({ result: STICKER, mode: 'live' });
+    const body = JSON.parse((fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+    expect(body.model).toBe('google/gemini-3.8-flash');
+    expect(body.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'report_nameplate', strict: true } });
+    const user = body.messages.find((m: { role: string }) => m.role === 'user');
+    expect(user.content).toHaveLength(1);
+    expect(user.content[0].type).toBe('image_url');
+    expect(user.content[0].image_url.url).toMatch(/^data:image\/jpeg;base64,/);
+  });
+
+  it('rechaza salida que no cumple el schema, sin respaldo', async () => {
+    const analyzer = createOpenRouterAnalyzer({ apiKey: 'k', model: 'm', fetchImpl: reply('{"approve": true}') });
+    const vision = createVision({ mode: 'live', model: 'm', analyzer, ...(await fixture()) });
+    await expect(vision.analyzePhoto('plate_p2')).rejects.toThrow(/salida del modelo inválida/);
+  });
+
+  it('si OpenRouter falla usa el replay grabado de la misma foto', async () => {
+    const analyzer = createOpenRouterAnalyzer({ apiKey: 'k', model: 'm', fetchImpl: reply(null, 503) });
+    const vision = createVision({ mode: 'live', model: 'm', analyzer, ...(await fixture()) });
+    await expect(vision.analyzePhoto('plate_p2')).resolves.toEqual({ result: STICKER, mode: 'replay' });
+  });
+
+  it('visionFromEnv pide llave y modelo de OpenRouter', () => {
+    expect(() => visionFromEnv({ VISION_MODE: 'live', VISION_PROVIDER: 'openrouter', OPENROUTER_MODEL: 'm' })).toThrow(/OPENROUTER_API_KEY/);
+    expect(() => visionFromEnv({ VISION_MODE: 'live', VISION_PROVIDER: 'openrouter', OPENROUTER_API_KEY: 'k' })).toThrow(/OPENROUTER_MODEL/);
+    expect(visionFromEnv({ VISION_MODE: 'live', VISION_PROVIDER: 'openrouter', OPENROUTER_API_KEY: 'k', OPENROUTER_MODEL: 'm' }).model).toBe('m');
+    expect(() => visionFromEnv({ VISION_MODE: 'live', VISION_PROVIDER: 'otro' })).toThrow(/anthropic u openrouter/);
   });
 });
