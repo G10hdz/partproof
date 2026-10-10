@@ -1,23 +1,42 @@
 # PartProof
 
-Shell de demo para Forja3D MX. Datos de flota estáticos; pagos, visión, MCP y persistencia todavía sin integrar. Las insignias MOCK y REPETICIÓN indican el modo previsto para la demo, no integraciones funcionales.
+PartProof es una demo para granjas de impresión 3D. Una impresora pide su refacción con evidencia. Un gate determinista decide si la compra sigue. El pago pasa por el sandbox de Reap.
+
+La empresa de ejemplo es Forja3D, con plantas en Guadalajara y Toronto.
+
+## Cómo correrlo
 
 ```bash
 npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Base en [Next.js App Router](https://nextjs.org/docs/app/getting-started/installation). Verificación:
+La app escucha en http://127.0.0.1:3000. Sin llaves responde un servidor en memoria con montos reales del sandbox.
+
+Backend real (SQLite, gate, MCP, visión en replay y pago mock):
+
+```bash
+BACKEND=real DEMO_MODE=1 npm run dev
+```
+
+Con Reap sandbox: llenar `REAP_API_KEY` y `REAP_ENROLLMENT_ID` en `.env.local` y agregar `PAYMENT_PROVIDER=reap`.
+
+Verificación (lo mismo que corre CI):
 
 ```bash
 npm run typecheck
+npm test
 npm run build
-bash scripts/agents.test.sh
 ```
 
-El [plan de seis agentes](docs/superpowers/plans/2026-10-09-partproof-six-agents.md) define contratos, propiedad de archivos, tres agentes en Mac y tres en Pop, checkpoints y transporte Git sin remote. Revisar y commitear la base antes de `bash scripts/agents.sh prepare mac` o `prepare pop`.
+## Estado
 
-No hay compras ni credenciales incluidas. No se han iniciado agentes en Pop. `PARTPROOF_MODEL` permite elegir un modelo instalado; consultar `opencode models` en cada máquina.
+Conectado: servidor MCP con token por máquina, gate en dos fases, visión (replay grabado con MiniMax M3 por OpenRouter), pago con Reap sandbox, SQLite y Server Actions. Guía para la UI: [06b](docs/superpowers/tasks/06b-a5-ui-sobre-backend.md).
+
+Simulado: el agente de Klipper (`tools/klipper-agent.ts`) y las horas de las máquinas. Las placas de `demo/photos` son imágenes preparadas, no fotos reales.
+
+El texto del formulario y el guion de 3 minutos están en `docs/submission/`.
 
 ## Wireframe HTML
 
