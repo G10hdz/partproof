@@ -2,7 +2,7 @@
 
 Fecha: 2026-10-09 · Estado: borrador para aprobación · Depende de: `2026-10-09-wear-triggered-parts-agent-design.md`, `2026-10-09-demo-design.md`
 
-Corrige §8 del spec de producto y la interfaz `PaymentProvider` de `src/contracts.ts`, que se congelaron antes de revisar la documentación de Reap. Este documento sale de la documentación pública. Ninguna afirmación se probó todavía contra el sandbox: todo lo marcado *observed* está observado en los docs, no en respuestas reales.
+Corrige §8 del spec de producto y la interfaz `PaymentProvider` de `src/contracts.ts`, que se congelaron antes de revisar la documentación de Reap. Este documento sale de la documentación pública. Lo marcado *observed* (E-n) está observado en los docs; lo ya probado contra el sandbox va en §11 con IDs S-n.
 
 ## 1. Resultado y alcance
 
@@ -195,14 +195,25 @@ Comandos: `npx vitest run src/server/payments.test.ts src/domain`, `npm run type
 
 Variables nuevas en `.env.example` (sin valores): `REAP_ENROLLMENT_ID`, `REAP_RETURN_URL`, `REAP_SIMULATE_CHECKOUT` (solo sandbox).
 
-## 11. Supuestos y desconocidos
+## 11. Verificado en el sandbox (2026-10-09, key del equipo)
+
+| ID | Llamada | Resultado |
+|---|---|---|
+| S-1 | `POST /agentic/enrollments` `EXTERNAL` | 200, `REQUIRES_ACTION` con página hosted de Prava (`sandbox.collect.prava.space`); la tarjeta se captura ahí y crea una passkey. Después `GET` devuelve `ACTIVE` |
+| S-2 | Quote `externalCheckout` digitmakers.ca, cable `67588566679782`, dirección en Toronto | 200. Subtotal 21.99 + envío 6.63 + impuestos 3.72 = `finalAmount` **32.34 CAD**. Nueve opciones de envío, la estándar preseleccionada. `expiresAt` unos 10 min después |
+| S-3 | Mismo cable y tubo PTFE `42393530925286` con dirección en Guadalajara | 400 `QUOTE_UNFULFILLABLE` / `ITEMS_UNSHIPPABLE`. **digitmakers.ca no envía a MX**, aunque la lista `/merchants` lo indique |
+| S-4 | `POST /agentic/checkouts` sobre el quote de S-2, sin `X-Simulate-Checkout` | 200, `REQUIRES_ACTION`, `amount` 32.34 CAD, `nextAction.url` en Prava, vence 10 min después |
+
+Consecuencias: `externalCheckout` está habilitado (no hace falta `products/search`); el host es `sg.sandbox.api.reap.global`; `finalAmount` llega en la moneda del merchant; los `ships_to` de `/merchants` no son confiables y la respuesta de Reap manda. El demo necesita una planta fuera de México (propuesta: Guadalajara y Toronto; la de Guadalajara recibe el rechazo real de Reap).
+
+## 12. Supuestos y desconocidos
 
 | Tema | Estado | Cómo se resuelve |
 |---|---|---|
-| Host del sandbox | Unknown. OpenAPI lista `mx.sandbox.api.reap.global` y `sg.sandbox.api.reap.global` (con alias `sandbox.api.reap.global`) | Preguntar en el Telegram cuál corresponde a la key de CDMX |
-| `externalCheckout` habilitado para los merchants de `/merchants` | Unknown; que la lista traiga `/cart/{variant_id}:1` lo sugiere | Primera llamada con la key: un quote a digitmakers.ca. Si responde `CHECKOUT_URL_INVALID`, cambiar a `products/search` + `items` |
-| Moneda de `finalAmount` | Unknown (CAD o convertida) | Leerla del primer quote real |
-| Página hosted del sandbox | Unknown si abre en el teléfono y acepta tarjeta de prueba | Enrollment hoy, antes del ensayo |
+| Host del sandbox | Resuelto (S-1): `sg.sandbox.api.reap.global` | — |
+| `externalCheckout` habilitado para los merchants de `/merchants` | Resuelto para digitmakers.ca (S-2); cubictech.com.au sin probar | Un quote a cubictech con dirección en Toronto |
+| Moneda de `finalAmount` | Resuelto (S-2): moneda del merchant | — |
+| Página hosted del sandbox | Enrollment resuelto (S-1); aprobación de checkout en curso (S-4) | Completar S-4 hasta `COMPLETED` |
 | `returnUrl` | Debe ser HTTPS (E-7); el demo corre en `127.0.0.1` | Usar cualquier página HTTPS estática; el estado se lee por consulta, no por el regreso |
 | `X-Simulate-Checkout` | Observed solo en sandbox (E-2) | Respaldo si la página hosted falla en vivo, con insignia visible |
 
