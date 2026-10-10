@@ -2,6 +2,7 @@
 // Fase A (sin red): evidence, compat, variant_exact, ships_to.
 // Fase B (sobre el quote de Reap): price_cap, budget, quote_valid. Razones en español.
 import type { GateCheck, GateInputA, GateInputB, GatePhase, GateRule, Money } from '@/contracts';
+import { budgetFor } from './budget';
 import { normalizeModel } from './compat';
 
 const MINOR_UNITS = 100;
@@ -89,7 +90,7 @@ export function evaluateGateB(input: GateInputB): GateCheck[] {
       ? check('price_cap', 'B', true, `${total}; tope ${fmt(capMinor)} ${company.currency}`)
       : check('price_cap', 'B', false, `${total} excede el tope de ${fmt(capMinor)} ${company.currency}`);
 
-    const budgetMinor = Math.round(company.monthly_budget * MINOR_UNITS);
+    const budgetMinor = Math.round(budgetFor(company, now) * MINOR_UNITS);
     const spendMinor = Math.round(monthly_spend * MINOR_UNITS);
     budget = spendMinor + amountMinor <= budgetMinor
       ? check('budget', 'B', true, `Gasto del mes ${fmt(spendMinor)} + ${fmt(amountMinor)} de ${fmt(budgetMinor)} ${company.currency}`)
