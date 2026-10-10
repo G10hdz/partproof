@@ -52,7 +52,7 @@ export default function CaptureForm({ machineId, parts, registeredModel }: { mac
           <dl><Fact label="Registrado">{registeredModel}</Fact><Fact label="Leído">{photo.vision.nameplate_model ?? 'no legible'}</Fact><Fact label="Confianza">{Math.round(photo.vision.confidence * 100)}%</Fact><Fact label="Modo">{photo.mode === 'live' ? 'EN VIVO' : 'REPETICIÓN'}</Fact></dl>
           <p className={ok ? 'small' : 'notice-text'}>{photo.model_matches ? 'El modelo coincide.' : 'El modelo leído no coincide con el registrado.'} {photo.enough_confidence ? '' : 'Lectura con poca confianza: repite la foto.'}</p>
           <div className="stack"><select aria-label="Refacción" value={part} onChange={(e) => setPart(e.target.value as PartType)}>{parts.map((x) => <option key={x} value={x}>{PART_LABELS[x]}</option>)}</select>
-            <button className="primary block" type="button" onClick={use} disabled={busy}>Usar esta foto como evidencia</button></div>
+            <button className="primary block" type="button" onClick={use} disabled={busy || !photo.model_matches}>Usar esta foto como evidencia</button></div>
           <p className="muted small">La foto no autoriza una compra; el gate decide.</p></>
           : <p className="muted">Sube una foto para comparar el modelo leído con el registrado ({registeredModel}).</p>}
         {result && (result.proposal_id !== null ? <p>Solicitud creada · <Link className="link" href={`/proposals/${result.proposal_id}`}>ver propuesta</Link></p> : <p className="notice-text">{result.reason}</p>)}
