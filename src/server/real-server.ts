@@ -91,7 +91,8 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
             hours_since_replace -= s.rated_life_hours;
           }
           store.putStock({ ...s, qty, hours_since_replace });
-          if (qty < s.min_qty) crossed.push(s.part_type);
+          // Solo al cruzar el mínimo: si ya estaba abajo, la solicitud ya se abrió en un avance anterior.
+          if (s.qty >= s.min_qty && qty < s.min_qty) crossed.push(s.part_type);
         }
         return crossed;
       });
