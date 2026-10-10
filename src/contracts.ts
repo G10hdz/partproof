@@ -263,7 +263,7 @@ export interface PartProofServer {
   listEvents(): Promise<EventView[]>;
   getModes(): Promise<DemoModes>;
   // Crea el checkout en Reap; la UI muestra checkout.approvalUrl como QR.
-  approveProposal(id: string): Promise<ProposalView>;
+  approveProposal(id: string, expectedToken?: string): Promise<ProposalView>;
   // Consulta el estado del checkout; la UI lo llama cada 2 s mientras status sea 'approved'.
   refreshProposal(id: string): Promise<ProposalView>;
   // Quote nuevo tras 'failed', o cuando el quote de una propuesta 'proposed' ya venció.

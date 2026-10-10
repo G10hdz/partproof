@@ -6,6 +6,7 @@ import type { ActionResult } from '@/app/actions';
 import { approveProposal, refreshProposal, rejectProposal, requoteProposal } from '@/app/actions';
 import type { ProposalView } from '@/contracts';
 import { Badge, Fact, statusTone } from './Ui';
+import { approvalToken } from '@/lib/approval-token';
 import { STATUS_LABELS, dateTime, isExpired, money } from './format';
 
 function Qr({ url }: { url: string }) {
@@ -50,7 +51,7 @@ export default function ProposalPanel({ initial }: { initial: ProposalView }) {
 
     {p.status === 'proposed' && <div className="actions">
       {quoteExpired ? <button className="primary" disabled={pending} onClick={() => run(requoteProposal)}>La cotización venció · Cotizar de nuevo</button>
-        : <button className="primary" disabled={!canApprove || pending} onClick={() => run(approveProposal)}>{pending ? 'Procesando…' : 'Aprobar'}</button>}
+        : <button className="primary" disabled={!canApprove || pending} onClick={() => run((id) => approveProposal(id, approvalToken(p) ?? ''))}>{pending ? 'Procesando…' : 'Aprobar'}</button>}
       <button className="secondary" disabled={pending} onClick={() => run(rejectProposal)}>Rechazar</button></div>}
     {p.status === 'proposed' && !p.verification.passed && <p className="notice-text">Aprobar está bloqueado: una verificación falló.</p>}
     {p.status === 'rejected' && <p className="notice-text">Rechazada. Revisa la regla que falló a la izquierda.</p>}

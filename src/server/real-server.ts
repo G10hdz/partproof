@@ -74,7 +74,7 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
       return { photo_id: photoId, machine_id: machineId, registered_model: machine.nameplate_model, vision: result, mode, model_matches, enough_confidence };
     },
 
-    approveProposal: (id) => workflow.approve(id),
+    approveProposal: (id, token) => workflow.approve(id, token),
     refreshProposal: (id) => workflow.refresh(id),
     requoteProposal: (id) => workflow.requote(id),
     async rejectProposal(id) { return workflow.reject(id); },

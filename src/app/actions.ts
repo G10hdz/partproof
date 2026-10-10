@@ -26,8 +26,8 @@ async function run<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
 }
 
 // Crea el checkout en Reap; mostrar data.checkout.approvalUrl como QR.
-export async function approveProposal(id: string): Promise<ActionResult<ProposalView>> {
-  return run(() => server.approveProposal(Id.parse(id)));
+export async function approveProposal(id: string, expectedToken: string): Promise<ActionResult<ProposalView>> {
+  return run(() => server.approveProposal(Id.parse(id), z.string().min(1).parse(expectedToken)));
 }
 
 // Llamar cada 2 s mientras data.status sea 'approved'.

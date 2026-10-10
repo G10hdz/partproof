@@ -6,6 +6,7 @@ import {
   type ProviderErrorCode, type ProviderMode, type RequestPartInput, type RequestPartResult, type VisionMode,
   type VisionResult,
 } from '@/contracts';
+import { approvalToken } from '@/lib/approval-token';
 import { cartUrl } from './catalog';
 import type { Store } from './db';
 import { REQUEST_PART_TOOL } from './mcp-names';
@@ -163,7 +164,7 @@ export function createWorkflow(deps: WorkflowDeps) {
       return { proposal_id: id, status: view.status, verification: view.verification };
     },
 
-    async approve(id: string): Promise<ProposalView> {
+    async approve(id: string, expectedToken?: string): Promise<ProposalView> {
       let { view, attempt } = load(id);
       if (view.status !== 'proposed' || !view.verification.passed || !view.quote) {
         throw new Error('Solo se aprueba una propuesta que pasó el gate');
@@ -187,6 +188,11 @@ export function createWorkflow(deps: WorkflowDeps) {
       if (view.status !== 'proposed' || !view.quote) {
         store.putProposal(view, attempt);
         return view;
+      }
+      // El operador aprobó lo que vio; si el quote o el monto cambiaron (p. ej. recotización) se guarda y se pide aprobar de nuevo.
+      if (expectedToken !== undefined && expectedToken !== approvalToken(view)) {
+        store.putProposal(view, attempt);
+        throw new Error('La cotización cambió desde que la revisaste; revisa el nuevo monto y aprueba de nuevo');
       }
 
       // Transición atómica a 'approved' antes de la llamada externa: un segundo clic no abre otro checkout.

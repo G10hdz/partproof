@@ -1,3 +1,4 @@
+import { approvalToken } from '@/lib/approval-token';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
@@ -138,6 +139,21 @@ describe('workflow', () => {
     const { workflow, server, calls } = setup();
     const r = await workflow.createProposal(request('P1', 'accelerometer_cable'));
     await Promise.allSettled([server.approveProposal(r.proposal_id!), server.approveProposal(r.proposal_id!)]);
+    expect(calls.checkout).toHaveLength(1);
+  });
+
+  it('approve con token distinto no abre checkout', async () => {
+    const { workflow, calls } = setup();
+    const r = await workflow.createProposal(request('P1', 'accelerometer_cable'));
+    await expect(workflow.approve(r.proposal_id!, 'token-viejo')).rejects.toThrow(/cambió/);
+    expect(calls.checkout).toHaveLength(0);
+  });
+
+  it('approve con el token vigente abre el checkout', async () => {
+    const { workflow, server, calls } = setup();
+    const r = await workflow.createProposal(request('P1', 'accelerometer_cable'));
+    const view = (await server.getProposal(r.proposal_id!))!;
+    await workflow.approve(r.proposal_id!, approvalToken(view)!);
     expect(calls.checkout).toHaveLength(1);
   });
 
