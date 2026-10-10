@@ -218,4 +218,6 @@ export interface PartProofServer {
   advanceHours(machineId: string, hours: number): Promise<void>;
   saveSettings(input: { monthly_budget: number; purchase_cap: number }): Promise<void>;
   resetDemo(): Promise<void>;
+  createProposal(input: RequestPartInput): Promise<RequestPartResult>;
+  recordEvent(event: Omit<EventView, 'id' | 'created_at'>): Promise<void>;
 }
