@@ -1,49 +1,27 @@
-import { PendingNotice } from '@/components/PendingNotice';
+import Link from 'next/link';
+import { getDb } from '@/lib/db';
+import { fleetRows, recentProposals, integrationModes, PART_LABELS } from '@/lib/queries';
+import CaptureForm from '@/components/CaptureForm';
+import EquipmentVisual from '@/components/EquipmentVisual';
+import { Badge, EmptyState, Fact, PageHeader, ProposalList } from '@/components/Ui';
 
-const FLEET: { id: string; nameplate_model: string; hotend: string; hours_total: number }[] = [
-  { id: 'P1', nameplate_model: 'Original Prusa MK4S', hotend: 'Nextruder', hours_total: 820 },
-  { id: 'P2', nameplate_model: 'Original Prusa MK3S', hotend: 'E3D V6', hours_total: 2310 },
-  { id: 'P3', nameplate_model: 'Original Prusa MK3S+', hotend: 'E3D V6', hours_total: 1480 },
-  { id: 'P4', nameplate_model: 'Creality K1', hotend: 'Micro Swiss FlowTech', hours_total: 640 },
-];
-
-export default function FleetPage() {
-  return (
-    <>
-      <h1 className="page__title">Flota</h1>
-      <p className="page__lede">
-        Cuatro impresoras de la demo estática de Forja3D MX. Referencia de los datos semilla.
-      </p>
-
-      <div className="table-scroll">
-      <table>
-        <caption className="sr-only">Flota de máquinas de la demo</caption>
-        <thead>
-          <tr>
-            <th scope="col">Máquina</th>
-            <th scope="col">Modelo de placa</th>
-            <th scope="col">Hotend</th>
-            <th scope="col">Horas</th>
-            <th scope="col">Stock / mínimo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {FLEET.map((m) => (
-            <tr key={m.id}>
-              <td>{m.id}</td>
-              <td>{m.nameplate_model}</td>
-              <td>{m.hotend}</td>
-              <td>{m.hours_total}</td>
-              <td>1 / 1</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </div>
-
-      <div style={{ marginTop: '1.25rem' }}>
-        <PendingNotice />
-      </div>
-    </>
-  );
+export default function FleetPage(){
+  const db=getDb();const fleet=fleetRows(db);const {vision}=integrationModes();
+  return <>
+    <PageHeader title="Flota" description="Estado de cada impresora, su stock de refacciones y la vida útil restante."/>
+    <div className="grid cols-auto">{fleet.map(m=><section className="panel" key={m.id}>
+      <EquipmentVisual/>
+      <Badge>{m.id}</Badge><h3>{m.name}</h3>
+      <p className="muted small">{m.nameplateModel} · {m.hotend}</p>
+      <dl><Fact label="Horas de uso">{m.hoursTotal} h</Fact></dl>
+      {m.parts.map(p=>{const pct=Math.min(100,Math.round(p.hoursSinceReplace/p.ratedLifeHours*100));const low=p.qty<=p.minQty;
+        return <div className="part-row" key={p.partType}><div><strong>{PART_LABELS[p.partType]}</strong><Badge tone={low?'bad':'good'}>{p.qty}/{p.minQty} mín.</Badge></div>
+          <div className="progress" role="img" aria-label={`Vida usada ${pct}%`}><span style={{width:`${pct}%`}}/></div>
+          <small className="muted">{p.hoursSinceReplace} de {p.ratedLifeHours} h ({pct}%)</small></div>;})}
+      <CaptureForm machineId={m.id} available={vision!==null}/>
+    </section>)}</div>
+    <section className="panel" style={{marginTop:18}}><h2>Solicitudes recientes</h2><ProposalList proposals={recentProposals(db).slice(0,5)}/>
+      <p className="small"><Link href="/proposals">Ver todas →</Link></p></section>
+    {fleet.length===0&&<EmptyState title="Sin máquinas">Carga la semilla para ver la flota.</EmptyState>}
+  </>;
 }

@@ -1,23 +1,11 @@
-import { PendingNotice } from '@/components/PendingNotice';
+import { redirect } from 'next/navigation';
+import { getDb } from '@/lib/db';
+import { recentProposals } from '@/lib/queries';
+import { EmptyState, PageHeader } from '@/components/Ui';
 
-export default function WatchPage() {
-  return (
-    <>
-      <h1 className="page__title">Reloj</h1>
-      <p className="page__lede">
-        Pantalla tamaño reloj para aprobar una propuesta con un toque.
-      </p>
-
-      <div className="card">
-        <h2 className="card__title">Tarjeta mínima de aprobación</h2>
-        <p className="card__body">
-          Propuesta pendiente con botón de aprobación. Reutiliza la tarjeta de Propuestas.
-        </p>
-      </div>
-
-      <div style={{ marginTop: '1.25rem' }}>
-        <PendingNotice />
-      </div>
-    </>
-  );
+export const metadata={title:'Reloj'};
+export default function WatchIndex(){
+  const next=recentProposals(getDb()).find(p=>p.status==='proposed');
+  if(next)redirect(`/watch/${next.id}`);
+  return <><PageHeader title="Reloj" description="Aprobación con un toque."/><EmptyState title="Nada pendiente">No hay solicitudes por aprobar.</EmptyState></>;
 }

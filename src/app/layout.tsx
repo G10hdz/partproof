@@ -1,33 +1,9 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import Link from 'next/link';
+import Banner from '@/components/Banner';
 import { Nav } from '@/components/Nav';
-import { SandboxBanner } from '@/components/SandboxBanner';
-
-export const metadata: Metadata = {
-  title: 'PartProof — Shell de demo',
-  description:
-    'Shell de la demo PartProof: impresoras que piden su refacción con evidencia, gate determinista y sandbox.',
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="es">
-      <body>
-        <SandboxBanner />
-        <header className="header">
-          <div className="header__inner">
-            <div className="brand">
-              PartProof
-              <span className="brand__sub">Forja3D MX · demo</span>
-            </div>
-            <Nav />
-          </div>
-        </header>
-        <main className="main">{children}</main>
-        <footer className="footer">
-          Demo estática de Forja3D MX · Integración pendiente.
-        </footer>
-      </body>
-    </html>
-  );
-}
+import './globals.css';
+export const metadata:Metadata={title:{default:'PartProof · Forja3D MX',template:'%s · PartProof'},description:'Reposición de refacciones con evidencia, verificaciones y aprobación humana.'};
+export const runtime='nodejs';
+export const dynamic='force-dynamic';
+export default function Layout({children}:{children:React.ReactNode}){return <html lang="es"><body><a href="#contenido" className="skip-link">Saltar al contenido</a><div className="app-shell"><aside className="sidebar"><Link className="logo" href="/"><i aria-hidden="true"/>partproof.</Link><p className="eyebrow">Workspace</p><Nav/><div className="sidebar-footer"><span className="badge">SANDBOX</span><p>Forja3D MX<br/>Una sola granja</p></div></aside><div className="app-content"><Banner/><main id="contenido" className="content">{children}</main><footer className="app-footer">PartProof · Reposición con evidencia y aprobación humana.</footer></div></div></body></html>;}
