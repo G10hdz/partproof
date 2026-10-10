@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { server } from '@/server/api';
 import EquipmentVisual from '@/components/EquipmentVisual';
@@ -6,6 +7,12 @@ import ProposalPanel from '@/components/ProposalPanel';
 import { Fact, PageHeader, Tag } from '@/components/Ui';
 import { PART_LABELS, dateTime } from '@/components/format';
 import { telegramBotUrl } from '@/server/telegram';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const p = await server.getProposal(id);
+  return { title: p ? `Solicitud ${p.machine_id} / ${PART_LABELS[p.part_type]}` : 'Propuesta' };
+}
 
 export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

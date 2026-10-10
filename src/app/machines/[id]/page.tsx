@@ -1,9 +1,16 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { server } from '@/server/api';
 import EquipmentVisual from '@/components/EquipmentVisual';
 import { Fact, PageHeader, ProposalList } from '@/components/Ui';
 import { PART_LABELS, dateTime, lifePercent } from '@/components/format';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const v = await server.getMachineView(id);
+  return { title: v ? `${v.machine.id} / ${v.machine.nameplate_model}` : 'Máquina' };
+}
 
 export default async function MachinePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
