@@ -1,7 +1,7 @@
 // Persistencia en node:sqlite (sin módulos nativos). Las entidades se guardan como JSON;
 // las columnas sueltas existen solo para las restricciones que importan.
 import { DatabaseSync } from 'node:sqlite';
-import type { Company, EventView, LedgerRow, Machine, ProposalView, Site, Stock } from '@/contracts';
+import type { Company, EventView, LedgerRow, Machine, ProposalView, Schedule, Site, Stock } from '@/contracts';
 import { seedCompany, seedMachines, seedSites, seedStock } from './seed';
 
 const SCHEMA = `
@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS purchase (
   proposal_id TEXT NOT NULL UNIQUE, data TEXT NOT NULL, created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS event (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, data TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS schedule (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 `;
 
 type Row = { data: string };
@@ -49,7 +50,7 @@ export function openStore(path = ':memory:') {
   const store = {
     seed() {
       tx(() => {
-        for (const t of ['company', 'site', 'machine', 'stock', 'proposal', 'purchase', 'event']) db.exec(`DELETE FROM ${t}`);
+        for (const t of ['company', 'site', 'machine', 'stock', 'proposal', 'purchase', 'event', 'schedule']) db.exec(`DELETE FROM ${t}`);
         store.putCompany(seedCompany());
         for (const s of seedSites()) db.prepare('INSERT INTO site (id, data) VALUES (?, ?)').run(s.id, JSON.stringify(s));
         for (const m of seedMachines()) store.putMachine(m);
@@ -101,6 +102,11 @@ export function openStore(path = ':memory:') {
       return Number(r.changes) === 1;
     },
     listPurchases: () => parse<LedgerRow>(db.prepare('SELECT data FROM purchase ORDER BY created_at').all()),
+
+    listSchedules: () =>
+      parse<Schedule>(db.prepare(`SELECT data FROM schedule ORDER BY json_extract(data, '$.next_run'), id`).all()),
+    getSchedule: (id: string) => parse<Schedule>(db.prepare('SELECT data FROM schedule WHERE id = ?').all(id))[0] ?? null,
+    putSchedule: (s: Schedule) => db.prepare('INSERT OR REPLACE INTO schedule (id, data) VALUES (?, ?)').run(s.id, JSON.stringify(s)),
 
     addEvent: (e: EventView) =>
       db.prepare('INSERT INTO event (id, created_at, data) VALUES (?, ?, ?)').run(e.id, e.created_at, JSON.stringify(e)),
