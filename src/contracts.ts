@@ -194,6 +194,9 @@ export interface LedgerRow {
 export interface LedgerView {
   rows: LedgerRow[];
   monthly_total: number;
+  // Desglose de monthly_total: pagado (COMPLETED) y reservado por propuestas aprobadas aún en confirmación.
+  monthly_confirmed: number;
+  monthly_committed: number;
   monthly_budget: number;
   currency: string;
   cost_per_hour: { machine_id: string; amount: number | null }[];
