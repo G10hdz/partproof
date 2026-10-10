@@ -3,7 +3,7 @@
 // nunca aceptan merchant, variante ni precio desde el cliente.
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PART_TYPES, type SettingsInput, type EvidencePreview, type ProposalView, type RequestPartResult, type Schedule } from '@/contracts';
+import { PART_TYPES, ProviderError, type SettingsInput, type EvidencePreview, type ProposalView, type RequestPartResult, type Schedule } from '@/contracts';
 import { server } from '@/server/api';
 
 const Id = z.string().trim().min(1).max(100);
@@ -13,7 +13,7 @@ const Money = z.number().finite().min(0).max(10_000_000);
 const PATHS = ['/', '/proposals', '/ledger', '/mcp-log', '/watch', '/schedules', '/settings'];
 const refresh = () => { for (const p of PATHS) revalidatePath(p); };
 
-export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
+export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string; retryAfterMs?: number };
 
 async function run<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
   try {
@@ -21,7 +21,11 @@ async function run<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
     refresh();
     return { ok: true, data };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'Error inesperado' };
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Error inesperado',
+      retryAfterMs: err instanceof ProviderError ? err.retryAfterMs : undefined,
+    };
   }
 }
 
@@ -30,7 +34,7 @@ export async function approveProposal(id: string, expectedToken: string): Promis
   return run(() => server.approveProposal(Id.parse(id), z.string().min(1).parse(expectedToken)));
 }
 
-// Llamar cada 2 s mientras data.status sea 'approved'.
+// Llamar mientras data.status sea 'approved'; la UI espacia las consultas con backoff.
 export async function refreshProposal(id: string): Promise<ActionResult<ProposalView>> {
   return run(() => server.refreshProposal(Id.parse(id)));
 }

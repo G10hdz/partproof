@@ -291,12 +291,23 @@ async function request<T>(
     const body = text ? safeJson(text) : null;
     if (response.ok) return body as T;
     const error = classify(response.status, body);
-    const retry = error.code === 'RETRYABLE' && attempt < ATTEMPTS;
+    error.retryAfterMs = retryAfterMs(response.headers.get('retry-after'));
+    // Con Retry-After no se reintenta aquí: el llamador espera lo que pide el proveedor.
+    const retry = error.code === 'RETRYABLE' && attempt < ATTEMPTS && error.retryAfterMs === undefined;
     if (!retry) throw error;
     last = error;
     await sleep(100 * 2 ** (attempt - 1));
   }
   throw last;
+}
+
+// Retry-After llega en segundos o como fecha HTTP; cualquier otra cosa se ignora.
+function retryAfterMs(value: string | null): number | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const at = Date.parse(value);
+  return Number.isNaN(at) ? undefined : Math.max(0, at - Date.now());
 }
 
 function safeJson(text: string): unknown {

@@ -7,6 +7,7 @@ import { approveProposal, refreshProposal, rejectProposal, requoteProposal } fro
 import type { ProposalView } from '@/contracts';
 import { Badge, Fact, statusTone } from './Ui';
 import { approvalToken } from '@/lib/approval-token';
+import { pollDelay } from '@/lib/poll-backoff';
 import { STATUS_LABELS, dateTime, isExpired, money } from './format';
 
 function Qr({ url }: { url: string }) {
@@ -24,10 +25,32 @@ export default function ProposalPanel({ initial, telegram = null }: { initial: P
   const run = (fn: (id: string) => Promise<ActionResult<ProposalView>>) => start(async () => { try { apply(await fn(p.id)); } catch { setError('No se pudo confirmar el resultado. Revisa el estado antes de reintentar.'); } });
 
   useEffect(() => { setNow(Date.now()); const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  // Mientras el pago siga 'approved' se consulta con backoff (2, 5, 10, 30 s); si el proveedor
+  // manda Retry-After se espera eso. Un rate limit no es un error para la persona que lee la página.
   useEffect(() => {
     if (p.status !== 'approved') return;
-    const t = setInterval(() => { refreshProposal(p.id).then(apply, () => setError('No se pudo consultar el pago; se reintentará.')); }, 2000);
-    return () => clearInterval(t);
+    let cancelled = false;
+    let step = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = async () => {
+      let wait: number | undefined;
+      try {
+        const r = await refreshProposal(p.id);
+        if (cancelled) return;
+        if (r.ok) apply(r);
+        else {
+          wait = r.retryAfterMs;
+          if (wait === undefined) setError('No se pudo consultar el pago; se reintentará.');
+        }
+      } catch {
+        if (cancelled) return;
+        setError('No se pudo consultar el pago; se reintentará.');
+      }
+      step += 1;
+      if (!cancelled) timer = setTimeout(tick, pollDelay(step, wait));
+    };
+    timer = setTimeout(tick, pollDelay(0));
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [p.id, p.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const quoteExpired = p.status === 'proposed' && !!p.quote && isExpired(p.quote.expiresAt, now);
