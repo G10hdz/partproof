@@ -27,7 +27,7 @@ export default function ScheduleForm({ options, today }: { options: Option[]; to
     start(async () => {
       try {
         const r = await createSchedule({ machine_id: machine, part_type: part, date, repeat: repeat ? 'monthly' : 'once' });
-        setMsg(r.ok ? 'Compra programada.' : r.error);
+        setMsg(r.ok ? 'Reposición programada.' : r.error);
         if (r.ok) router.refresh();
       } catch { setMsg('No se pudo programar. Revisa los datos e intenta de nuevo.'); }
     });

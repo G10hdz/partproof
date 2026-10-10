@@ -57,7 +57,7 @@ describe('runDue', () => {
     store.putSchedule(sched({ next_run: '2026-10-10T00:00:00.000Z' }));
     const ran = await schedules.runDue();
     expect(ran).toHaveLength(1);
-    expect(calls).toEqual([{ machine_id: 'P1', part_type: 'accelerometer_cable', hours_since_replace: 1480, photo_id: 'plate_p1', note: 'Compra programada' }]);
+    expect(calls).toEqual([{ machine_id: 'P1', part_type: 'accelerometer_cable', hours_since_replace: 1480, photo_id: 'plate_p1', note: 'Reposición programada' }]);
     expect(store.getSchedule('s1')).toMatchObject({
       active: false, last_run: NOW.toISOString(), last_result: { status: 'proposed', proposal_id: 'pr-1' },
     });
