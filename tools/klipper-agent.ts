@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { MCP_PATH, MOONRAKER_PATH, REQUEST_PART_TOOL } from '../src/server/mcp-names';
+import { MCP_PATH, MOONRAKER_PATH, REQUEST_PART_TOOL } from '../src/server/mcp-names.ts';
 
 interface MoonrakerState {
   machine_id: string;
