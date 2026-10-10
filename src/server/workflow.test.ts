@@ -40,7 +40,8 @@ const gateB = (i: GateInputB): GateCheck[] => {
   ];
 };
 
-function stubProvider(opts: { quoteExpiresAt?: string; statuses?: CheckoutStatus[] } = {}) {
+function stubProvider(opts: { quoteExpiresAt?: string; statuses?: CheckoutStatus[]; checkoutFailures?: ProviderError[] } = {}) {
+  const checkoutFailures = [...(opts.checkoutFailures ?? [])];
   const calls = { quote: [] as string[], checkout: [] as string[], getCheckout: 0 };
   const statuses = [...(opts.statuses ?? ['PROCESSING', 'COMPLETED'])];
   const provider: PaymentProvider = {
@@ -55,6 +56,8 @@ function stubProvider(opts: { quoteExpiresAt?: string; statuses?: CheckoutStatus
     },
     async checkout({ quoteId, idempotencyKey }) {
       calls.checkout.push(idempotencyKey);
+      const failure = checkoutFailures.shift();
+      if (failure) throw failure;
       return { id: `co-${quoteId}`, status: 'REQUIRES_ACTION', approvalUrl: 'https://sandbox.collect.prava.space?session=ses_REDACTED',
         approvalExpiresAt: inMin(10), orderId: null, finalAmount: null };
     },
@@ -69,14 +72,14 @@ function stubProvider(opts: { quoteExpiresAt?: string; statuses?: CheckoutStatus
   return { provider, calls };
 }
 
-function setup(opts: Parameters<typeof stubProvider>[0] & { confidence?: number } = {}) {
+function setup(opts: Parameters<typeof stubProvider>[0] & { confidence?: number; now?: () => Date } = {}) {
   const store = openStore(':memory:');
   store.seed();
   const { provider, calls } = stubProvider(opts);
   const models = Object.fromEntries(seedMachines().map((m) => [`plate_${m.id}`, m.nameplate_model]));
   let n = 0;
   const workflow = createWorkflow({
-    store, provider, providerMode: 'mock', catalog: CATALOG, fx: FX_TO_MXN, now: () => NOW, newId: () => `id-${++n}`,
+    store, provider, providerMode: 'mock', catalog: CATALOG, fx: FX_TO_MXN, now: opts.now ?? (() => NOW), newId: () => `id-${++n}`,
     evaluateGateA: gateA, evaluateGateB: gateB,
     analyzePhoto: async (photoId) => ({
       mode: 'replay',
@@ -155,6 +158,33 @@ describe('workflow', () => {
     expect(calls.quote.at(-1)).toBe(`quote:${r.proposal_id}:2`);
   });
 
+  it('pago ambiguo: queda pendiente de conciliación y consultar repite la misma key, sin otra compra', async () => {
+    const { workflow, server, calls } = setup({ checkoutFailures: [new ProviderError('RETRYABLE', 'timeout')] });
+    const r = await workflow.createProposal(request('P1', 'accelerometer_cable'));
+    const pending = await server.approveProposal(r.proposal_id!);
+    expect(pending.status).toBe('approved');
+    expect(pending.checkout).toBeNull();
+    expect(pending.reason).toContain('Pendiente de conciliación');
+    expect((await server.requoteProposal(r.proposal_id!)).status).toBe('approved');
+    await server.refreshProposal(r.proposal_id!);
+    expect(calls.checkout).toEqual([`checkout:${r.proposal_id}:1`, `checkout:${r.proposal_id}:1`]);
+    expect(calls.quote).toHaveLength(1);
+    await server.refreshProposal(r.proposal_id!);
+    const ledger = await server.getLedger();
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({ part_type: 'accelerometer_cable', product_title: 'Prusa Accelerometer Cables' });
+  });
+
+  it('una propuesta cuyo quote venció después se puede recotizar sin aprobarla', async () => {
+    const clock = { now: NOW };
+    const { workflow, calls } = setup({ quoteExpiresAt: inMin(5), now: () => clock.now });
+    const r = await workflow.createProposal(request('P1', 'accelerometer_cable'));
+    expect(r.status).toBe('proposed');
+    clock.now = new Date(NOW.getTime() + 10 * 60_000);
+    await workflow.requote(r.proposal_id!);
+    expect(calls.quote).toEqual([`quote:${r.proposal_id}:1`, `quote:${r.proposal_id}:2`]);
+  });
+
   it('una solicitud abierta no se duplica', async () => {
     const { workflow, calls } = setup();
     const a = await workflow.createProposal(request('P1', 'accelerometer_cable'));
@@ -181,5 +211,32 @@ describe('workflow', () => {
     const s = (await server.listStock()).find((x) => x.machine_id === 'P1')!;
     expect(s).toMatchObject({ qty: 0, hours_since_replace: 10 });
     expect(low).toEqual(['P1:accelerometer_cable']);
+  });
+});
+
+describe('evidencia y detalle de máquina', () => {
+  const vision = (model: string | null, confidence: number) => async () =>
+    ({ mode: 'replay' as const, result: { nameplate_model: model, hotend: null, visible_damage: ['none' as const], label_text: null, confidence } });
+
+  it('previewEvidence compara el modelo leído con el registrado sin crear propuesta', async () => {
+    const { store, workflow } = setup();
+    const ok = createRealServer({ store, workflow, providerMode: 'mock', visionMode: 'replay', demo: true, analyzePhoto: vision('Original Prusa MK3S', 0.95) });
+    expect(await ok.previewEvidence('P2', 'plate_p2')).toMatchObject({ model_matches: true, enough_confidence: true, registered_model: 'Original Prusa MK3S' });
+    const sticker = createRealServer({ store, workflow, providerMode: 'mock', visionMode: 'replay', demo: true, analyzePhoto: vision('Original Prusa MK3S+', 0.95) });
+    expect((await sticker.previewEvidence('P2', 'plate_p2_sticker')).model_matches).toBe(false);
+    const blurry = createRealServer({ store, workflow, providerMode: 'mock', visionMode: 'replay', demo: true, analyzePhoto: vision(null, 0.3) });
+    expect((await blurry.previewEvidence('P2', 'unclear')).enough_confidence).toBe(false);
+    expect(await ok.listProposals()).toHaveLength(0);
+  });
+
+  it('getMachineView junta máquina, planta, stock, propuestas y eventos', async () => {
+    const { server, workflow } = setup();
+    await workflow.createProposal(request('P1', 'accelerometer_cable'));
+    const view = await server.getMachineView('P1');
+    expect(view).toMatchObject({ machine: { id: 'P1' }, site: { id: 'tor' }, plate_photo_id: 'plate_p1' });
+    expect(view!.stock).toHaveLength(1);
+    expect(view!.proposals).toHaveLength(1);
+    expect(view!.events.length).toBeGreaterThan(0);
+    expect(await server.getMachineView('P9')).toBeNull();
   });
 });

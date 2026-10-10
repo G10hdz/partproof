@@ -176,6 +176,8 @@ export interface LedgerRow {
   proposal_id: string;
   machine_id: string;
   site_id: string;
+  part_type: PartType;
+  product_title: string;
   order_id: string;
   provider: ProviderMode;
   amount: Money;
@@ -197,6 +199,24 @@ export interface EventView {
   created_at: string;
 }
 export interface DemoModes { provider: ProviderMode; vision: VisionMode; demo: boolean }
+export interface MachineView {
+  machine: Machine;
+  site: Site;
+  stock: Stock[];
+  proposals: ProposalView[];
+  events: EventView[];
+  plate_photo_id: string;
+}
+// Lectura de una foto sin crear propuesta: qué leyó la visión y si coincide con el modelo registrado.
+export interface EvidencePreview {
+  photo_id: string;
+  machine_id: string;
+  registered_model: string;
+  vision: VisionResult;
+  mode: VisionMode;
+  model_matches: boolean;
+  enough_confidence: boolean;
+}
 
 export interface PartProofServer {
   getCompany(): Promise<Company>;
@@ -212,8 +232,10 @@ export interface PartProofServer {
   approveProposal(id: string): Promise<ProposalView>;
   // Consulta el estado del checkout; la UI lo llama cada 2 s mientras status sea 'approved'.
   refreshProposal(id: string): Promise<ProposalView>;
-  // Quote y checkout nuevos tras 'failed' o quote vencido.
+  // Quote nuevo tras 'failed', o cuando el quote de una propuesta 'proposed' ya venció.
   requoteProposal(id: string): Promise<ProposalView>;
+  getMachineView(machineId: string): Promise<MachineView | null>;
+  previewEvidence(machineId: string, photoId: string): Promise<EvidencePreview>;
   rejectProposal(id: string): Promise<ProposalView>;
   advanceHours(machineId: string, hours: number): Promise<void>;
   saveSettings(input: { monthly_budget: number; purchase_cap: number }): Promise<void>;
