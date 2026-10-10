@@ -1,7 +1,8 @@
 // PartProofServer real: SQLite más el workflow. La UI lo consume a través de src/server/api.ts.
-import type { PartProofServer, PartType, VisionMode } from '@/contracts';
+import type { PartProofServer, PartType, VisionMode, VisionResult } from '@/contracts';
+import { normalizeModel } from '@/domain/compat';
 import type { Store } from './db';
-import type { Workflow } from './workflow';
+import { MIN_CONFIDENCE, type Workflow } from './workflow';
 
 export interface RealServerDeps {
   store: Store;
@@ -9,6 +10,7 @@ export interface RealServerDeps {
   providerMode: 'mock' | 'reap';
   visionMode: VisionMode;
   demo: boolean;
+  analyzePhoto?: (photoId: string) => Promise<{ result: VisionResult; mode: VisionMode }>;
   // Lo conecta el carril MCP: el agente de Klipper pide la pieza cuando el stock baja del mínimo.
   onLowStock?: (machineId: string, part: PartType) => Promise<void>;
 }
@@ -38,6 +40,34 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
           machine_id: m.id, amount: m.hours_total > 0 ? Math.round((total(m.id) / m.hours_total) * 100) / 100 : null,
         })),
       };
+    },
+
+    async getMachineView(machineId) {
+      const machine = store.getMachine(machineId);
+      const site = machine && store.getSite(machine.site_id);
+      if (!machine || !site) return null;
+      return {
+        machine, site,
+        stock: store.listStock().filter((s) => s.machine_id === machineId),
+        proposals: store.listProposals().filter((p) => p.machine_id === machineId),
+        events: store.listEvents().filter((e) => e.machine_id === machineId),
+        plate_photo_id: `plate_${machineId.toLowerCase()}`,
+      };
+    },
+
+    // Lee la foto sin crear propuesta. Confirmar el modelo aquí no salta el gate: la propuesta se crea aparte.
+    async previewEvidence(machineId, photoId) {
+      const machine = store.getMachine(machineId);
+      if (!machine) throw new Error(`Máquina ${machineId} no existe`);
+      if (!deps.analyzePhoto) throw new Error('La visión no está configurada');
+      const { result, mode } = await deps.analyzePhoto(photoId);
+      const model_matches = !!result.nameplate_model && normalizeModel(result.nameplate_model) === normalizeModel(machine.nameplate_model);
+      const enough_confidence = !!result.nameplate_model && result.confidence >= MIN_CONFIDENCE;
+      store.addEvent({
+        id: crypto.randomUUID(), machine_id: machineId, source: 'photo', created_at: new Date().toISOString(),
+        payload: { photo_id: photoId, nameplate_model: result.nameplate_model, confidence: result.confidence, model_matches, mode },
+      });
+      return { photo_id: photoId, machine_id: machineId, registered_model: machine.nameplate_model, vision: result, mode, model_matches, enough_confidence };
     },
 
     approveProposal: (id) => workflow.approve(id),

@@ -23,10 +23,12 @@ export interface WorkflowDeps {
 }
 
 const QUOTE_MARGIN_MS = 60_000;
-const MIN_CONFIDENCE = 0.7;
+export const MIN_CONFIDENCE = 0.7;
 // Errores de Reap que son definitivos para esta propuesta; el resto deja la propuesta en 'failed' para recotizar.
 const DEFINITIVE: ProviderErrorCode[] = ['ITEMS_UNSHIPPABLE', 'VARIANT_UNAVAILABLE', 'CARD_PAYMENT_UNAVAILABLE', 'CHECKOUT_URL_INVALID'];
 
+const AMBIGUOUS_REASON = 'Pendiente de conciliación: Reap no confirmó si creó el pago. Se reintenta la misma operación al consultar; no se abre otra compra.';
+const isAmbiguous = (err: unknown) => !(err instanceof ProviderError) || err.code === 'RETRYABLE' || err.code === 'UNKNOWN';
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const allPass = (checks: GateCheck[]) => checks.length > 0 && checks.every((c) => c.passed);
 
@@ -203,6 +205,13 @@ export function createWorkflow(deps: WorkflowDeps) {
         store.putProposal(next, attempt);
         return next;
       } catch (err) {
+        if (isAmbiguous(err)) {
+          // No sabemos si Reap creó el checkout: la propuesta sigue 'approved' y consultar repite la misma
+          // llamada con la misma Idempotency-Key. Nunca se ofrece otra compra desde aquí.
+          const pending: ProposalView = { ...reserved, checkout: null, reason: AMBIGUOUS_REASON };
+          store.putProposal(pending, attempt);
+          return pending;
+        }
         const machine = store.getMachine(view.machine_id);
         const failed = providerFailure(reserved, err, machine ? store.getSite(machine.site_id)?.country ?? '' : '');
         store.putProposal(failed, attempt);
@@ -211,16 +220,32 @@ export function createWorkflow(deps: WorkflowDeps) {
     },
 
     async refresh(id: string): Promise<ProposalView> {
-      const { view, attempt } = load(id);
-      if (view.status !== 'approved' || !view.checkout) return view;
-      const checkout = await provider.getCheckout(view.checkout.id);
+      let { view, attempt } = load(id);
+      if (view.status !== 'approved') return view;
+      if (!view.checkout) {
+        if (!view.quote) return view;
+        try {
+          const created = await provider.checkout({ quoteId: view.quote.id, idempotencyKey: `checkout:${id}:${attempt}` });
+          view = { ...view, checkout: created, reason: null };
+          store.putProposal(view, attempt);
+        } catch (err) {
+          if (isAmbiguous(err)) return view;
+          const machine = store.getMachine(view.machine_id);
+          const failed = providerFailure(view, err, machine ? store.getSite(machine.site_id)?.country ?? '' : '');
+          store.putProposal(failed, attempt);
+          return failed;
+        }
+      }
+      const current = view.checkout!;
+      const checkout = await provider.getCheckout(current.id);
       if (checkout.status === 'COMPLETED') {
         const amount = checkout.finalAmount ?? view.quote?.finalAmount;
         if (!amount || !checkout.orderId) throw new Error('Checkout completado sin orderId o monto');
         const paid: ProposalView = { ...view, status: 'paid', checkout, reason: null };
         store.tx(() => {
           const inserted = store.insertPurchase({
-            proposal_id: id, machine_id: view.machine_id, site_id: view.site_id, order_id: checkout.orderId!,
+            proposal_id: id, machine_id: view.machine_id, site_id: view.site_id,
+            part_type: view.part_type, product_title: view.product?.title ?? view.part_type, order_id: checkout.orderId!,
             provider: view.provider ?? deps.providerMode, amount,
             amount_company: toCompany(amount.amount, amount.currency) ?? 0, created_at: now().toISOString(),
           });
@@ -247,7 +272,8 @@ export function createWorkflow(deps: WorkflowDeps) {
 
     async requote(id: string): Promise<ProposalView> {
       const { view, attempt } = load(id);
-      if (view.status !== 'failed' || !view.product) return view;
+      const expired = view.status === 'proposed' && !!view.quote && Date.parse(view.quote.expiresAt) <= now().getTime();
+      if ((view.status !== 'failed' && !expired) || !view.product) return view;
       const next = await priceAndGateB({ ...view, checkout: null }, attempt + 1);
       store.putProposal(next, attempt + 1);
       return next;

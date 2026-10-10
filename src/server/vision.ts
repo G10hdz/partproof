@@ -43,7 +43,7 @@ const INTRO = 'Lees fotos de impresoras 3D para un registro de mantenimiento.';
 export const SYSTEM_PROMPT = `${INTRO} Responde solo con la herramienta ${TOOL_NAME}.\n${RULES}`;
 const JSON_PROMPT = `${INTRO} Responde solo con un objeto JSON que cumpla el schema ${TOOL_NAME}.\n${RULES}`;
 
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const PHOTO_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const PHOTO_EXT = ['.jpg', '.jpeg', '.png'];
 
@@ -57,6 +57,8 @@ export interface MessagesClient {
 export interface VisionDeps {
   mode: VisionMode;
   photosDir: string;
+  // Fotos tomadas por el técnico desde la UI (no están en el replay; requieren modo live).
+  uploadsDir?: string;
   replayPath: string;
   client?: MessagesClient;
   model?: string;
@@ -65,21 +67,29 @@ export interface VisionDeps {
 
 const sha256 = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 
-function mediaTypeOf(bytes: Buffer): MediaType {
+export function mediaTypeOf(bytes: Buffer): MediaType {
   if (bytes.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) return 'image/jpeg';
   if (bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
   throw new Error('vision: la foto no es JPEG ni PNG');
 }
 
 // Solo resuelve ids contra los archivos que ya existen en photosDir; nunca rutas ni URLs.
-export async function readPhoto(photosDir: string, photoId: string) {
+export async function readPhoto(photosDirs: string | string[], photoId: string) {
   if (!PHOTO_ID.test(photoId)) throw new Error('vision: photo_id inválido');
-  const name = (await readdir(photosDir)).find((f) => {
-    const ext = path.extname(f);
-    return PHOTO_EXT.includes(ext.toLowerCase()) && path.basename(f, ext) === photoId;
-  });
-  if (!name) throw new Error(`vision: no existe la foto ${photoId}`);
-  const bytes = await readFile(path.join(photosDir, name));
+  let found: string | null = null;
+  for (const dir of Array.isArray(photosDirs) ? photosDirs : [photosDirs]) {
+    const files = await readdir(/* turbopackIgnore: true */ dir).catch((err: NodeJS.ErrnoException) => {
+      if (err.code === 'ENOENT') return [] as string[];
+      throw err;
+    });
+    const name = files.find((f) => {
+      const ext = path.extname(f);
+      return PHOTO_EXT.includes(ext.toLowerCase()) && path.basename(f, ext) === photoId;
+    });
+    if (name) { found = path.join(dir, name); break; }
+  }
+  if (!found) throw new Error(`vision: no existe la foto ${photoId}`);
+  const bytes = await readFile(/* turbopackIgnore: true */ found);
   if (bytes.length > MAX_PHOTO_BYTES) throw new Error(`vision: la foto ${photoId} pasa de 5 MB`);
   return { bytes, mediaType: mediaTypeOf(bytes), hash: sha256(bytes) };
 }
@@ -165,7 +175,8 @@ export function createVision(deps: VisionDeps) {
 
   return {
     async analyzePhoto(photoId: string): Promise<{ result: VisionResult; mode: VisionMode }> {
-      const { bytes, mediaType, hash } = await readPhoto(deps.photosDir, photoId);
+      const dirs = deps.uploadsDir ? [deps.photosDir, deps.uploadsDir] : deps.photosDir;
+      const { bytes, mediaType, hash } = await readPhoto(dirs, photoId);
       if (deps.mode === 'replay') return { result: await fromReplay(photoId, hash), mode: 'replay' };
       const { analyze } = liveDeps(deps);
       try {
@@ -197,11 +208,16 @@ export function createVision(deps: VisionDeps) {
   };
 }
 
+export const uploadsDir = (env: Record<string, string | undefined> = process.env) =>
+  env.PARTPROOF_UPLOADS ?? path.join(process.cwd(), '.data', 'photos');
+
 export function visionFromEnv(env: Record<string, string | undefined> = process.env): VisionDeps {
   const mode = env.VISION_MODE ?? 'replay';
   if (mode !== 'live' && mode !== 'replay') throw new Error('vision: VISION_MODE debe ser live o replay');
   const demo = path.join(process.cwd(), 'demo');
-  const base = { mode, photosDir: path.join(demo, 'photos'), replayPath: path.join(demo, 'vision-replay.json') } as const;
+  const base = {
+    mode, photosDir: path.join(demo, 'photos'), uploadsDir: uploadsDir(env), replayPath: path.join(demo, 'vision-replay.json'),
+  } as const;
   if (mode === 'replay') return base;
   const provider = env.VISION_PROVIDER ?? 'anthropic';
   if (provider === 'openrouter') {

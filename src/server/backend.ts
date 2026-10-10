@@ -26,6 +26,7 @@ export function createBackend(env: Record<string, string | undefined> = process.
   let mcp: ReturnType<typeof createMcpHandler> | null = null;
   const server = createRealServer({
     store, workflow, providerMode: mode, visionMode: visionDeps.mode, demo: env.DEMO_MODE === '1',
+    analyzePhoto: vision.analyzePhoto,
     // La máquina pide su refacción por MCP con su propio token; sin token configurado, la solicitud se abre directo.
     onLowStock: async (machineId, part) => {
       const stock = store.getStock(machineId, part);
