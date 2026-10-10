@@ -54,6 +54,22 @@ describe('guion del demo con mock', () => {
     expect((await server.getLedger()).rows[0]).toMatchObject({ machine_id: 'P1', amount_company: 420.42 });
   });
 
+  it('una orden en PROCESSING cuenta como comprometido y al completarse pasa a confirmado', async () => {
+    const { server, request } = demo(createMockProvider(), 'mock');
+    const p1 = await request('P1', 'accelerometer_cable');
+    await server.approveProposal(p1.id);
+    await server.refreshProposal(p1.id);
+    const pending = await server.getLedger();
+    expect(pending.rows).toHaveLength(0);
+    expect(pending.monthly_confirmed).toBe(0);
+    expect(pending.monthly_committed).toBe(420.42);
+    expect(pending.monthly_total).toBe(420.42);
+    await server.refreshProposal(p1.id);
+    const done = await server.getLedger();
+    expect(done.monthly_confirmed).toBe(420.42);
+    expect(done.monthly_committed).toBe(0);
+  });
+
   it('P2 se rechaza en fase A por compatibilidad, sin cotizar', async () => {
     const { provider, calls } = countingMock();
     const { request } = demo(provider, 'mock');

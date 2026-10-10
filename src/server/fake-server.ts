@@ -213,9 +213,11 @@ export function createFakeServer(): PartProofServer {
       };
     },
     async getLedger(): Promise<LedgerView> {
-      const monthly_total = round2(ledger.reduce((s, r) => s + r.amount_company, 0));
+      const confirmed = round2(ledger.reduce((s, r) => s + r.amount_company, 0));
+      const committed = round2(proposals.filter((p) => p.status === 'approved').reduce((s, p) => s + (p.quote_amount_company ?? 0), 0));
       return {
-        rows: ledger, monthly_total, monthly_budget: budgetFor(company, new Date()), currency: company.currency,
+        rows: ledger, monthly_total: round2(confirmed + committed), monthly_confirmed: confirmed, monthly_committed: committed,
+        monthly_budget: budgetFor(company, new Date()), currency: company.currency,
         cost_per_hour: machines.map((m) => {
           const spent = ledger.filter((r) => r.machine_id === m.id).reduce((s, r) => s + r.amount_company, 0);
           return { machine_id: m.id, amount: m.hours_total > 0 ? round2(spent / m.hours_total) : null };

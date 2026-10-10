@@ -8,7 +8,7 @@ import type { Workflow } from './workflow';
 
 const real = (): PartProofServer =>
   createRealServer({
-    store: openStore(':memory:'), workflow: { monthlySpend: () => 0 } as unknown as Workflow,
+    store: openStore(':memory:'), workflow: { monthlySpend: () => 0, monthlySpendParts: () => ({ confirmed: 0, committed: 0, total: 0 }) } as unknown as Workflow,
     providerMode: 'mock', visionMode: 'replay', demo: true,
   });
 

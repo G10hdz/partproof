@@ -46,16 +46,18 @@ export function createWorkflow(deps: WorkflowDeps) {
     return rate === undefined ? null : round2(amount * rate);
   };
 
-  // Gasto del mes más lo reservado por propuestas aprobadas que aún no se pagan.
-  function monthlySpend(excludeId?: string) {
+  // Gasto del mes confirmado (pagos COMPLETED) y lo reservado por propuestas aprobadas
+  // que aún no se pagan (en el sandbox quedan en PROCESSING, S-5).
+  function monthlySpendParts(excludeId?: string) {
     const d = now();
     const month = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-    const paid = store.listPurchases().filter((r) => r.created_at.startsWith(month)).reduce((s, r) => s + r.amount_company, 0);
-    const reserved = store.listProposals()
+    const confirmed = store.listPurchases().filter((r) => r.created_at.startsWith(month)).reduce((s, r) => s + r.amount_company, 0);
+    const committed = store.listProposals()
       .filter((p) => p.status === 'approved' && p.id !== excludeId)
       .reduce((s, p) => s + (p.quote_amount_company ?? 0), 0);
-    return round2(paid + reserved);
+    return { confirmed: round2(confirmed), committed: round2(committed), total: round2(confirmed + committed) };
   }
+  const monthlySpend = (excludeId?: string) => monthlySpendParts(excludeId).total;
 
   function providerFailure(view: ProposalView, err: unknown, country: string): ProposalView {
     const code: ProviderErrorCode = err instanceof ProviderError ? err.code : 'UNKNOWN';
@@ -110,6 +112,7 @@ export function createWorkflow(deps: WorkflowDeps) {
 
   return {
     monthlySpend,
+    monthlySpendParts,
 
     async createProposal(input: RequestPartInput): Promise<RequestPartResult> {
       const machine = store.getMachine(input.machine_id);

@@ -36,10 +36,12 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
     async getLedger() {
       const rows = store.listPurchases();
       const company = store.getCompany();
+      const spend = workflow.monthlySpendParts();
       const total = (machineId?: string) =>
         Math.round(rows.filter((r) => !machineId || r.machine_id === machineId).reduce((s, r) => s + r.amount_company, 0) * 100) / 100;
       return {
-        rows, monthly_total: workflow.monthlySpend(), monthly_budget: budgetFor(company, new Date()), currency: company.currency,
+        rows, monthly_total: spend.total, monthly_confirmed: spend.confirmed, monthly_committed: spend.committed,
+        monthly_budget: budgetFor(company, new Date()), currency: company.currency,
         cost_per_hour: store.listMachines().map((m) => ({
           machine_id: m.id, amount: m.hours_total > 0 ? Math.round((total(m.id) / m.hours_total) * 100) / 100 : null,
         })),
