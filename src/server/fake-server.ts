@@ -2,7 +2,7 @@
 // Montos y estados copiados de respuestas reales del sandbox (fixtures/reap/).
 import type {
   Company, EventView, GateCheck, LedgerRow, LedgerView, Machine, PartProofServer, Product,
-  ProposalView, ProviderQuote, Site, Stock,
+  ProposalView, ProviderQuote, RequestPartInput, RequestPartResult, Site, Stock,
 } from '@/contracts';
 
 const FX_TO_MXN: Record<string, number> = { CAD: 13.0, AUD: 12.0, MXN: 1 };
@@ -246,6 +246,14 @@ export function createFakeServer(): PartProofServer {
     async resetDemo() {
       company = seedCompany(); machines = seedMachines(); stock = seedStock();
       proposals = seedProposals(); events = seedEvents(); ledger = []; polls.clear();
+    },
+    async createProposal(input: RequestPartInput): Promise<RequestPartResult> {
+      const proposal = proposals.find((candidate) => candidate.machine_id === input.machine_id && candidate.part_type === input.part_type);
+      if (!proposal) return { proposal_id: null, status: 'needs_confirmation', reason: 'No hay una propuesta de demo para esta pieza' };
+      return { proposal_id: proposal.id, status: proposal.status, verification: proposal.verification };
+    },
+    async recordEvent(event) {
+      events = [{ ...event, id: crypto.randomUUID(), created_at: now() }, ...events];
     },
   };
 }

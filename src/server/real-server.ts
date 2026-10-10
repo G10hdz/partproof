@@ -78,5 +78,9 @@ export function createRealServer(deps: RealServerDeps): PartProofServer {
       if (!deps.demo) throw new Error('resetDemo solo existe con DEMO_MODE=1');
       store.seed();
     },
+    createProposal: (input) => workflow.createProposal(input),
+    async recordEvent(event) {
+      store.addEvent({ ...event, id: crypto.randomUUID(), created_at: new Date().toISOString() });
+    },
   };
 }
