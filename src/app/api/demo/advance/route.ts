@@ -1,9 +1,11 @@
 import * as z from 'zod/v4';
 import { server } from '@/server/api';
+import { seedMachines } from '@/server/seed';
 
 export const runtime = 'nodejs';
 
-const input = z.object({ machine_id: z.enum(['P1', 'P2', 'P3', 'P4']), hours: z.number().finite().nonnegative() }).strict();
+const machineIds = seedMachines().map((m) => m.id) as [string, ...string[]];
+const input = z.object({ machine_id: z.enum(machineIds), hours: z.number().finite().nonnegative() }).strict();
 
 export async function POST(request: Request) {
   if (process.env.DEMO_MODE !== '1') return new Response(null, { status: 404 });

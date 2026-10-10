@@ -8,6 +8,7 @@ import {
 } from '@/contracts';
 import { cartUrl } from './catalog';
 import type { Store } from './db';
+import { REQUEST_PART_TOOL } from './mcp-names';
 
 export interface WorkflowDeps {
   store: Store;
@@ -113,7 +114,7 @@ export function createWorkflow(deps: WorkflowDeps) {
       if (!machine || !site) throw new Error(`Máquina ${input.machine_id} no existe`);
       const event = (result: string, extra: Record<string, unknown> = {}) => store.addEvent({
         id: newId(), machine_id: machine.id, source: 'klipper', created_at: now().toISOString(),
-        payload: { tool: 'request_part', part_type: input.part_type, hours_since_replace: input.hours_since_replace,
+        payload: { tool: REQUEST_PART_TOOL, part_type: input.part_type, hours_since_replace: input.hours_since_replace,
           photo_id: input.photo_id, note: input.note ?? null, result, ...extra },
       });
 

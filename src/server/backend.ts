@@ -6,6 +6,7 @@ import { evaluateGateA, evaluateGateB } from '@/domain/gate';
 import { CATALOG } from './catalog';
 import { openStore } from './db';
 import { callRequestPart, createMcpHandler } from './mcp';
+import { mcpTokenKey, REQUEST_PART_TOOL } from './mcp-names';
 import { getPaymentProvider } from './payments';
 import { createRealServer } from './real-server';
 import { FX_TO_MXN } from './seed';
@@ -34,7 +35,7 @@ export function createBackend(env: Record<string, string | undefined> = process.
         machine_id: machineId, part_type: part, hours: stock?.hours_since_replace ?? 0,
         photo_id: `plate_${machineId.toLowerCase()}`,
       };
-      const token = env[`MCP_TOKEN_${machineId}`];
+      const token = env[mcpTokenKey(machineId)];
       try {
         if (token && mcp) {
           const result = await callRequestPart(mcp, token, args);
@@ -47,7 +48,7 @@ export function createBackend(env: Record<string, string | undefined> = process.
       } catch (err) {
         store.addEvent({
           id: crypto.randomUUID(), machine_id: machineId, source: 'klipper', created_at: new Date().toISOString(),
-          payload: { tool: 'request_part', part_type: part, result: 'error', detail: err instanceof Error ? err.message : String(err) },
+          payload: { tool: REQUEST_PART_TOOL, part_type: part, result: 'error', detail: err instanceof Error ? err.message : String(err) },
         });
       }
     },

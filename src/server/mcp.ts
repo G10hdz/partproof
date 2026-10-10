@@ -2,13 +2,16 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import * as z from 'zod/v4';
-import type { EventView, RequestPartInput, RequestPartResult } from '@/contracts';
+import { PART_TYPES, type EventView, type RequestPartInput, type RequestPartResult } from '@/contracts';
+import { MCP_PATH, mcpTokenKey, REQUEST_PART_TOOL } from './mcp-names';
+import { seedMachines } from './seed';
 
-const machines = ['P1', 'P2', 'P3', 'P4'] as const;
+// Las máquinas que pueden autenticarse son las del seed: agregar una ahí la habilita aquí.
+const machines = seedMachines().map((m) => m.id) as [string, ...string[]];
 
 export const RequestPartInputSchema = z.object({
   machine_id: z.enum(machines),
-  part_type: z.enum(['accelerometer_cable', 'ptfe_tube', 'thermistor', 'nozzle']),
+  part_type: z.enum(PART_TYPES),
   hours: z.number().finite().nonnegative(),
   photo_id: z.string().trim().min(1),
   note: z.string().max(1000).optional(),
@@ -28,7 +31,7 @@ function authenticatedMachine(request: Request) {
   if (!token) return null;
 
   const matched = machines.filter((machine) => {
-    const configured = process.env[`MCP_TOKEN_${machine}`];
+    const configured = process.env[mcpTokenKey(machine)];
     if (!configured) return false;
     const suppliedHash = sha256(token);
     const configuredHash = sha256(configured);
@@ -45,7 +48,7 @@ export function createMcpHandler(deps: McpDeps) {
 
     const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     const server = new McpServer({ name: 'partproof-mcp', version: '1.0.0' });
-    server.registerTool('request_part', {
+    server.registerTool(REQUEST_PART_TOOL, {
       description: 'Solicita una propuesta de refacción para la máquina autenticada.',
       inputSchema: RequestPartInputSchema,
     }, async (input) => {
@@ -63,7 +66,7 @@ export function createMcpHandler(deps: McpDeps) {
         await deps.recordEvent({
           machine_id: machine,
           source: 'klipper',
-          payload: { tool: 'request_part', note: input.note ?? null, result: proposal.status },
+          payload: { tool: REQUEST_PART_TOOL, note: input.note ?? null, result: proposal.status },
         });
         return { content: [{ type: 'text', text: JSON.stringify(proposal) }] };
       } catch (err) {
@@ -71,7 +74,7 @@ export function createMcpHandler(deps: McpDeps) {
         await deps.recordEvent({
           machine_id: machine,
           source: 'klipper',
-          payload: { tool: 'request_part', note: input.note ?? null, result: 'error', detail: err instanceof Error ? err.message : 'error' },
+          payload: { tool: REQUEST_PART_TOOL, note: input.note ?? null, result: 'error', detail: err instanceof Error ? err.message : 'error' },
         }).catch(() => undefined);
         return { isError: true, content: [{ type: 'text', text: 'No se pudo crear la propuesta.' }] };
       }
@@ -86,10 +89,10 @@ export type McpHandler = ReturnType<typeof createMcpHandler>;
 // Llamada JSON-RPC a request_part dentro del proceso, con el token de la máquina: pasa por la misma
 // autenticación y el mismo schema que una llamada externa. La usan la ruta de demo y el aviso de stock bajo.
 export async function callRequestPart(handler: McpHandler, token: string, args: unknown): Promise<{ isError: boolean; text: string }> {
-  const response = await handler(new Request('http://127.0.0.1/api/mcp', {
+  const response = await handler(new Request(`http://127.0.0.1${MCP_PATH}`, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'request_part', arguments: args } }),
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: REQUEST_PART_TOOL, arguments: args } }),
   }));
   const body = await response.json().catch(() => null) as
     | { result?: { isError?: boolean; content?: { text?: string }[] }; error?: { message?: string } }

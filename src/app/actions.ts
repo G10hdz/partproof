@@ -3,7 +3,7 @@
 // nunca aceptan merchant, variante ni precio desde el cliente.
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import type { EvidencePreview, ProposalView, RequestPartResult } from '@/contracts';
+import { PART_TYPES, type EvidencePreview, type ProposalView, type RequestPartResult } from '@/contracts';
 import { server } from '@/server/api';
 
 const Id = z.string().trim().min(1).max(100);
@@ -67,7 +67,7 @@ export async function previewEvidence(machineId: string, photoId: string): Promi
 
 // Envía la evidencia: abre la solicitud de la máquina con esa foto. El gate decide igual que por MCP.
 export async function submitEvidence(machineId: string, partType: string, photoId: string): Promise<ActionResult<RequestPartResult>> {
-  const part = z.enum(['ptfe_tube', 'thermistor', 'accelerometer_cable', 'nozzle']).parse(partType);
+  const part = z.enum(PART_TYPES).parse(partType);
   return run(async () => {
     const id = Id.parse(machineId);
     const stock = (await server.listStock()).find((s) => s.machine_id === id && s.part_type === part);
