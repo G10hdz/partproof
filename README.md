@@ -30,6 +30,12 @@ npm test
 npm run build
 ```
 
+Antes del demo, end-to-end contra el build real (levanta `next start`, recorre las cuatro escenas, la inyección, la subida de fotos y el CSV; pago mock y visión en replay):
+
+```bash
+npm run build && npm run e2e
+```
+
 ## Estado
 
 Conectado: servidor MCP con token por máquina, gate en dos fases, visión (replay grabado con MiniMax M3 por OpenRouter), pago con Reap sandbox, SQLite y Server Actions. Guía para la UI: [06b](docs/superpowers/tasks/06b-a5-ui-sobre-backend.md).
