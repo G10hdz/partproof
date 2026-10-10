@@ -36,6 +36,20 @@ Antes del demo, end-to-end contra el build real (levanta `next start`, recorre l
 npm run build && npm run e2e
 ```
 
+## Deploy
+
+Demo en vivo: https://partproof-527601165113.us-central1.run.app
+
+Corre en Cloud Run con una sola instancia (`--min-instances 1 --max-instances 1`), porque SQLite vive en el disco de esa instancia. En Vercel cada función tiene su propio `/tmp` y el estado se pierde entre requests. Si la instancia reinicia, la demo vuelve al estado inicial.
+
+```bash
+gcloud run deploy partproof --source . --region us-central1 \
+  --allow-unauthenticated --min-instances 1 --max-instances 1 --memory 1Gi \
+  --env-vars-file run-env.yaml
+```
+
+`run-env.yaml` no se sube: lleva `BACKEND=real`, `DEMO_MODE=1`, `VISION_MODE=replay`, `PAYMENT_PROVIDER=reap`, `REAP_RETURN_URL`, las llaves de sandbox de Reap y `MCP_TOKEN_P1..P4`.
+
 ## Estado
 
 Conectado: servidor MCP con token por máquina, gate en dos fases, visión (replay grabado con MiniMax M3 por OpenRouter), pago con Reap sandbox, SQLite y Server Actions. Guía para la UI: [06b](docs/superpowers/tasks/06b-a5-ui-sobre-backend.md).
