@@ -175,6 +175,8 @@ it('no solicita stock en mínimo', () => {
 
 **Modify:** shell y componentes propios. **Consumes:** queries y acciones del agente 1. **Produces:** seis pantallas responsive con datos reales de SQLite.
 
+**Referencia de recorrido y diseño:** [Mockup de interfaz](../specs/2026-10-09-interface-mockup.md). Sus vistas de detalle/captura/aprobación/resultado son estados o subviews de las rutas existentes.
+
 - [ ] Conectar Flota a `listMachines/listStock`, avance de horas a Server Action; Propuestas a `listProposals/getProposal`; Libro a `getLedger`; ajustes a `saveSettings`; Registro a `listEvents`; reloj a `getProposal/approveProposal`.
 - [ ] No crear rutas JSON para duplicar Server Components. Nunca importar DB/SDK en componentes cliente. Formularios accesibles, foco visible, mensajes de éxito/error y submit deshabilitado durante operación.
 - [ ] Propuesta muestra siete reglas, razón, foto y vigencia. Aprobar solo proposed y gate aprobado; el servidor vuelve a validar. Rechazo no se maquilla como fallo del provider. Reloj reutiliza tarjeta mínima de aprobación.
