@@ -214,6 +214,20 @@ describe('workflow', () => {
   });
 });
 
+describe('aviso de stock bajo', () => {
+  it('avisa una sola vez al cruzar el mínimo, no en cada avance posterior', async () => {
+    const { store, workflow } = setup();
+    const low: string[] = [];
+    const server = createRealServer({
+      store, workflow, providerMode: 'mock', visionMode: 'replay', demo: true,
+      onLowStock: async (m, p) => { low.push(`${m}:${p}`); },
+    });
+    await server.advanceHours('P2', 50);
+    await server.advanceHours('P2', 50);
+    expect(low).toEqual(['P2:ptfe_tube']);
+  });
+});
+
 describe('evidencia y detalle de máquina', () => {
   const vision = (model: string | null, confidence: number) => async () =>
     ({ mode: 'replay' as const, result: { nameplate_model: model, hotend: null, visible_damage: ['none' as const], label_text: null, confidence } });
