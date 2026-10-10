@@ -3,13 +3,14 @@ import { server } from '@/server/api';
 import EquipmentVisual from '@/components/EquipmentVisual';
 import { AdvanceHours, ResetDemo } from '@/components/DemoControls';
 import { Fact, PageHeader, ProposalList, Tag } from '@/components/Ui';
-import { PART_LABELS, lifePercent, money } from '@/components/format';
+import { PART_LABELS, latestProposalFor, lifePercent, money } from '@/components/format';
 
 export default async function FleetPage() {
   const [machines, sites, stock, proposals, modes, ledger] = await Promise.all([server.listMachines(), server.listSites(), server.listStock(), server.listProposals(), server.getModes(), server.getLedger()]);
   const low = stock.filter((s) => s.qty < s.min_qty);
   const hero = machines.find((m) => low.some((s) => s.machine_id === m.id)) ?? machines[0];
   const others = machines.filter((m) => m.id !== hero?.id);
+  const heroProposal = latestProposalFor(proposals, hero?.id);
   const pending = low[0];
   const pct = ledger.monthly_budget > 0 ? Math.min(100, (ledger.monthly_total / ledger.monthly_budget) * 100) : 0;
   const row = (m: (typeof machines)[number]) => { const s = stock.filter((x) => x.machine_id === m.id); const bad = s.some((x) => x.qty < x.min_qty);
@@ -21,7 +22,7 @@ export default async function FleetPage() {
     <div className="grid cols-2">
       <div className="stack">
         {hero && <section className="panel dark"><h2>{hero.id} / {hero.nameplate_model}</h2><EquipmentVisual variant="hero" />
-          <div className="actions"><Link className="btn" href={`/machines/${hero.id}`}>Ver ficha</Link>{proposals[0] && <Link className="btn accent" href={`/proposals/${proposals[0].id}`}>Revisar solicitud</Link>}</div></section>}
+          <div className="actions"><Link className="btn" href={`/machines/${hero.id}`}>Ver ficha</Link>{heroProposal && <Link className="btn accent" href={`/proposals/${heroProposal.id}`}>Revisar solicitud</Link>}{modes.demo && <AdvanceHours machineId={hero.id} />}</div></section>}
         <section className="panel"><h2>Otras máquinas</h2>{others.length ? others.map(row) : <p className="muted">Sin más máquinas.</p>}</section>
         <section className="panel"><h2>Solicitudes recientes</h2><ProposalList proposals={proposals.slice(0, 5)} sites={sites} /><p className="small"><Link className="link" href="/proposals">Ver todas →</Link></p></section>
       </div>
