@@ -1,0 +1,14 @@
+{
+  "id": "3890fb17-5f46-454c-809f-8740d0fea3cb",
+  "status": "PROCESSING",
+  "quoteId": "04f10eed-03d1-466d-bbc9-54dad053f02a",
+  "enrollmentId": "201c7637-d3db-4155-82bc-8bd415cb329b",
+  "orderId": "ord_01M4HVNHKX46GJABJTWA81TSKG",
+  "finalAmount": {
+    "amount": 32.34,
+    "currency": "CAD"
+  },
+  "nextAction": null,
+  "createdAt": "2026-10-10T02:53:25.614Z",
+  "updatedAt": "2026-10-10T02:55:29.137Z"
+}

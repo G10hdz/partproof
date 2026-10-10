@@ -1,0 +1,38 @@
+{
+  "id": "97b999f2-3202-43cc-b691-46df63cea517",
+  "shippingOptions": [
+    {
+      "id": "ship_0",
+      "name": "Australia Post International Express Courier",
+      "selected": true,
+      "price": {
+        "amount": 41,
+        "currency": "CAD"
+      }
+    }
+  ],
+  "amountBreakdown": {
+    "itemsSubtotal": {
+      "amount": 61,
+      "currency": "CAD"
+    },
+    "shipping": {
+      "amount": 41,
+      "currency": "CAD"
+    },
+    "tax": {
+      "amount": {
+        "amount": 0,
+        "currency": "CAD"
+      },
+      "includedInPrices": true
+    },
+    "discounts": [],
+    "additionalCharges": [],
+    "finalAmount": {
+      "amount": 102,
+      "currency": "CAD"
+    }
+  },
+  "expiresAt": "2026-10-10T03:01:48.407Z"
+}

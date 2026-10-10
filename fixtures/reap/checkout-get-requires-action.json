@@ -1,0 +1,18 @@
+{
+  "id": "742b942d-25d8-4073-b895-123a590fe238",
+  "status": "REQUIRES_ACTION",
+  "quoteId": "d372b2e8-544c-438d-9016-f1103ff7cbef",
+  "enrollmentId": "201c7637-d3db-4155-82bc-8bd415cb329b",
+  "orderId": "ord_01M4HVWMEXS81YVBMB9WJZW4V4",
+  "finalAmount": {
+    "amount": 32.34,
+    "currency": "CAD"
+  },
+  "nextAction": {
+    "type": "REDIRECT",
+    "url": "https://sandbox.collect.prava.space?session=ses_REDACTED",
+    "expiresAt": "2026-10-10T03:12:17.790Z"
+  },
+  "createdAt": "2026-10-10T02:57:17.913Z",
+  "updatedAt": "2026-10-10T02:57:17.913Z"
+}
