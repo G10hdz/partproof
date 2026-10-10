@@ -36,3 +36,4 @@ yarn-error.log*
 
 # local tool indexes
 .cocoindex_code/
+.vercel

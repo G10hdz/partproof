@@ -9,6 +9,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
+// Server Actions del build: se llaman igual que el navegador al hacer clic en la UI.
+const ACTIONS = () => JSON.parse(readFileSync(path.join(ROOT, '.next/server/server-reference-manifest.json'), 'utf8')).node;
+
 const ROOT = path.resolve(import.meta.dirname, '..');
 const PORT = Number(process.env.E2E_PORT ?? 3199);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -43,6 +46,14 @@ const db = () => new DatabaseSync(DB, { readOnly: true });
 const proposals = () => db().prepare('SELECT data FROM proposal').all().map((r) => JSON.parse(r.data));
 const events = () => db().prepare('SELECT data FROM event').all().map((r) => JSON.parse(r.data));
 const byMachine = (id) => proposals().filter((p) => p.machine_id === id);
+async function act(page, name, args) {
+  const id = Object.entries(ACTIONS()).find(([, v]) => v.exportedName === name)?.[0];
+  expect(id, `la acción ${name} no está en el build`);
+  const res = await fetch(`${BASE}${page}`, { method: 'POST', headers: { 'Next-Action': id, 'Content-Type': 'text/plain;charset=UTF-8', Accept: 'text/x-component' }, body: JSON.stringify(args) });
+  const text = await res.text();
+  expect(res.ok, `${name}: HTTP ${res.status}`);
+  return { failed: /"ok":false/.test(text), text };
+}
 const post = (route, body) => fetch(`${BASE}${route}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 const server = spawn(process.execPath, [path.join(ROOT, 'node_modules/next/dist/bin/next'), 'start', '-p', String(PORT), '-H', '127.0.0.1'], {
@@ -121,6 +132,39 @@ try {
     expect(logged, 'la nota no quedó en el registro');
     expect(byMachine('P2').every((p) => p.status === 'rejected'), 'una propuesta de P2 no quedó rechazada');
     expect(!proposals().some((p) => p.status === 'approved' || p.status === 'paid'), 'se abrió una compra');
+  });
+
+  await step('UI: aprobar P1 crea el checkout y la página muestra la URL de aprobación', async () => {
+    const [p] = byMachine('P1');
+    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id]);
+    expect(!r.failed, r.text.slice(0, 160));
+    const [after] = byMachine('P1');
+    expect(after.status === 'approved' && after.checkout?.approvalUrl, `status ${after.status}`);
+    const html = await (await fetch(`${BASE}/proposals/${p.id}`)).text();
+    expect(html.includes(after.checkout.approvalUrl), 'la página no muestra la URL de aprobación');
+  });
+
+  await step('UI: consultar el pago llega a paid y el libro muestra la orden', async () => {
+    const [p] = byMachine('P1');
+    await act(`/proposals/${p.id}`, 'refreshProposal', [p.id]);
+    await act(`/proposals/${p.id}`, 'refreshProposal', [p.id]);
+    const [paid] = byMachine('P1');
+    expect(paid.status === 'paid' && paid.checkout?.orderId, `status ${paid.status}`);
+    const html = await (await fetch(`${BASE}/ledger`)).text();
+    expect(html.includes(paid.checkout.orderId), 'la orden no aparece en /ledger');
+  });
+
+  await step('UI: aprobar una propuesta rechazada falla y no cambia su estado', async () => {
+    const [p] = byMachine('P4');
+    const r = await act(`/proposals/${p.id}`, 'approveProposal', [p.id]);
+    expect(r.failed && byMachine('P4')[0].status === 'rejected', `failed ${r.failed}, status ${byMachine('P4')[0].status}`);
+  });
+
+  await step('UI: las páginas responden 200', async () => {
+    for (const page of ['/', '/proposals', '/ledger', '/mcp-log', '/settings', '/machines/P1']) {
+      const res = await fetch(`${BASE}${page}`);
+      expect(res.status === 200, `${page}: HTTP ${res.status}`);
+    }
   });
 
   await step('subir foto de evidencia y servirla', async () => {
