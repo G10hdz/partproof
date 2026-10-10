@@ -52,7 +52,7 @@ export function createSchedules(deps: SchedulesDeps) {
     try {
       const r = await deps.createProposal({
         machine_id: s.machine_id, part_type: s.part_type, hours_since_replace: stock.hours_since_replace,
-        photo_id: `plate_${s.machine_id.toLowerCase()}`, note: 'Compra programada',
+        photo_id: `plate_${s.machine_id.toLowerCase()}`, note: 'Reposición programada',
       });
       if (r.proposal_id === null) return { status: 'error', proposal_id: null, message: r.reason };
       if (r.status === 'proposed') return { status: 'proposed', proposal_id: r.proposal_id, message: 'Propuesta lista para aprobar' };

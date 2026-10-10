@@ -16,7 +16,7 @@ export function RunNow() {
   const router = useRouter();
   return <div><button className="secondary" disabled={pending} onClick={() => start(async () => {
     const r = await runSchedules();
-    setMsg(r.ok ? (r.data.length ? `Se revisaron ${r.data.length} programadas.` : 'No había programadas vencidas.') : r.error);
+    setMsg(r.ok ? (r.data.length ? (r.data.length === 1 ? 'Se revisó 1 programada.' : `Se revisaron ${r.data.length} programadas.`) : 'No había programadas vencidas.') : r.error);
     router.refresh();
   })}>{pending ? 'Ejecutando…' : 'Ejecutar programadas ahora'}</button>{msg && <p role="status" className="muted small">{msg}</p>}</div>;
 }
