@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { gateCheck, isExpired, lifePercent, money } from './format';
+import { dateOnly, gateCheck, isExpired, lifePercent, money } from './format';
 
 describe('format', () => {
+  it('dateOnly muestra el día UTC sin correrlo por zona horaria', () => {
+    expect(dateOnly('2026-10-31T00:00:00.000Z')).toContain('31');
+    expect(dateOnly('2026-10-31T00:00:00.000Z')).toContain('2026');
+  });
   it('detecta cotización vencida solo con fecha válida', () => {
     expect(isExpired('2026-01-01T00:00:00Z', Date.parse('2026-01-02T00:00:00Z'))).toBe(true);
     expect(isExpired('2026-01-03T00:00:00Z', Date.parse('2026-01-02T00:00:00Z'))).toBe(false);
