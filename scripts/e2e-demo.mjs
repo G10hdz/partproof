@@ -79,6 +79,12 @@ try {
     await waitFor('una propuesta por máquina', () => ['P1', 'P2', 'P3', 'P4'].every((m) => byMachine(m).length === 1));
   });
 
+  await step('volver a avanzar horas, incluso dos veces a la vez, no abre otra solicitud', async () => {
+    await Promise.all([post('/api/demo/advance', { machine_id: 'P2', hours: 50 }), post('/api/demo/advance', { machine_id: 'P2', hours: 50 })]);
+    await post('/api/demo/advance', { machine_id: 'P1', hours: 50 });
+    expect(byMachine('P2').length === 1 && byMachine('P1').length === 1, `P1 ${byMachine('P1').length}, P2 ${byMachine('P2').length}`);
+  });
+
   await step('P1 pasa el gate con el total del sandbox (32.34 CAD = 420.42 MXN)', async () => {
     const [p] = byMachine('P1');
     expect(p.status === 'proposed', `status ${p.status}: ${p.reason}`);
