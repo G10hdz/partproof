@@ -64,12 +64,12 @@ Humano aprueba en la página de Reap (teléfono)
 
 ## 5. Tablas de decisión
 
-### 5.1 Fase B del gate (moneda de la empresa MXN, tasas de ejemplo CAD 13.0 y AUD 12.0, tope 1500, presupuesto 6000)
+### 5.1 Fase B del gate (moneda de la empresa MXN, tasas de ejemplo CAD 13.0 y AUD 12.0, tope 1000, presupuesto 6000)
 
 | finalAmount del quote | Gasto del mes | expiresAt vs ahora | price_cap | budget | quote_valid | Resultado |
 |---|---|---|---|---|---|---|
 | 33.50 CAD (435.50 MXN) | 0 | +8 min | pasa | pasa | pasa | proposed |
-| 120.00 CAD (1560 MXN) | 0 | +8 min | falla | pasa | pasa | rejected |
+| 102.00 CAD (1326 MXN, boquilla con envío desde Australia, S-7) | 0 | +8 min | falla | pasa | pasa | rejected |
 | 33.50 CAD | 5800 | +8 min | pasa | falla | pasa | rejected |
 | 33.50 CAD | 0 | exactamente ahora | pasa | pasa | falla | rejected (o requote al aprobar) |
 | 33.50 USD (sin tasa en la tabla) | 0 | +8 min | falla cerrado | falla cerrado | pasa | rejected |
@@ -203,18 +203,23 @@ Variables nuevas en `.env.example` (sin valores): `REAP_ENROLLMENT_ID`, `REAP_RE
 | S-2 | Quote `externalCheckout` digitmakers.ca, cable `67588566679782`, dirección en Toronto | 200. Subtotal 21.99 + envío 6.63 + impuestos 3.72 = `finalAmount` **32.34 CAD**. Nueve opciones de envío, la estándar preseleccionada. `expiresAt` unos 10 min después |
 | S-3 | Mismo cable y tubo PTFE `42393530925286` con dirección en Guadalajara | 400 `QUOTE_UNFULFILLABLE` / `ITEMS_UNSHIPPABLE`. **digitmakers.ca no envía a MX**, aunque la lista `/merchants` lo indique |
 | S-4 | `POST /agentic/checkouts` sobre el quote de S-2, sin `X-Simulate-Checkout` | 200, `REQUIRES_ACTION`, `amount` 32.34 CAD, `nextAction.url` en Prava, vence 10 min después |
+| S-5 | Aprobación humana del checkout de S-4 en la página de Prava (passkey) | Pasa a `PROCESSING` en segundos y trae `orderId`. Más de 15 min después sigue en `PROCESSING`, sin llegar a `COMPLETED` |
+| S-6 | Checkout con `X-Simulate-Checkout: COMPLETED` | Nace en `REQUIRES_ACTION` igual que sin el header; `GET` ya trae `orderId` y `finalAmount`, pero el estado no avanza solo. No sirve como atajo para el demo |
+| S-7 | Quote `externalCheckout` cubictech.com.au, boquilla `53918466703643`, dirección en Toronto | 200. 61 CAD + 41 CAD de envío desde Australia, impuestos incluidos: `finalAmount` **102 CAD**. Una sola opción de envío. cubictech sí envía a CA |
+| S-8 | Quote termistor digitmakers `44386635612390`, Toronto | 200, `finalAmount` 30.08 CAD |
 
-Consecuencias: `externalCheckout` está habilitado (no hace falta `products/search`); el host es `sg.sandbox.api.reap.global`; `finalAmount` llega en la moneda del merchant; los `ships_to` de `/merchants` no son confiables y la respuesta de Reap manda. El demo necesita una planta fuera de México (propuesta: Guadalajara y Toronto; la de Guadalajara recibe el rechazo real de Reap).
+Consecuencias: `externalCheckout` está habilitado (no hace falta `products/search`); el host es `sg.sandbox.api.reap.global`; `finalAmount` llega en la moneda del merchant (cubictech cotiza en CAD para una dirección en Canadá); los `ships_to` de `/merchants` no son confiables y la respuesta de Reap manda. El demo usa dos plantas, Guadalajara y Toronto; la de Guadalajara recibe el rechazo real de Reap. Con tope de 1,000 MXN, la boquilla de cubictech (1,326 MXN con envío) cae en `price_cap`. La UI debe presentar `PROCESSING` con `orderId` como "orden colocada, en confirmación"; el libro solo registra `COMPLETED` (pregunta abierta al equipo de Reap, S-5).
 
 ## 12. Supuestos y desconocidos
 
 | Tema | Estado | Cómo se resuelve |
 |---|---|---|
 | Host del sandbox | Resuelto (S-1): `sg.sandbox.api.reap.global` | — |
-| `externalCheckout` habilitado para los merchants de `/merchants` | Resuelto para digitmakers.ca (S-2); cubictech.com.au sin probar | Un quote a cubictech con dirección en Toronto |
+| `externalCheckout` habilitado para los merchants de `/merchants` | Resuelto para digitmakers.ca (S-2) y cubictech.com.au (S-7) | — |
+| Checkout que no sale de `PROCESSING` | Abierto (S-5) | Preguntar a @adrianxeno en el grupo si el sandbox llega a `COMPLETED` |
 | Moneda de `finalAmount` | Resuelto (S-2): moneda del merchant | — |
-| Página hosted del sandbox | Enrollment resuelto (S-1); aprobación de checkout en curso (S-4) | Completar S-4 hasta `COMPLETED` |
+| Página hosted del sandbox | Resuelto: enrollment (S-1) y aprobación de checkout con passkey (S-5) | — |
 | `returnUrl` | Debe ser HTTPS (E-7); el demo corre en `127.0.0.1` | Usar cualquier página HTTPS estática; el estado se lee por consulta, no por el regreso |
-| `X-Simulate-Checkout` | Observed solo en sandbox (E-2) | Respaldo si la página hosted falla en vivo, con insignia visible |
+| `X-Simulate-Checkout` | No salta la aprobación (S-6) | Respaldo real: grabación de una corrida completa |
 
 **Diferencias deliberadas con el spec de producto:** quote de Reap en lugar del propio; gate en dos fases; el reloj sale; Reap pasa de P1 a P0.
