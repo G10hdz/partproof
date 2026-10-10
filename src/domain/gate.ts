@@ -5,6 +5,7 @@ import type { GateCheck, GateInputA, GateInputB, GatePhase, GateRule, Money } fr
 import { normalizeModel } from './compat';
 
 const MINOR_UNITS = 100;
+const fmt = (minor: number) => (minor / MINOR_UNITS).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 function check(rule: GateRule, phase: GatePhase, passed: boolean, reason: string): GateCheck {
   return { rule, phase, passed, reason };
@@ -51,7 +52,7 @@ export function evaluateGateA(input: GateInputA): GateCheck[] {
     compatPassed = product.compat_models.map(normalizeModel).includes(model);
     compatReason = compatPassed
       ? `Pieza compatible con ${model}`
-      : `La pieza no es compatible con ${model}`;
+      : `Esta pieza solo es compatible con ${product.compat_models.join(', ')}; la placa dice ${model}`;
   }
 
   const variantExactPassed = checkout_url === cartUrlOf(product);
@@ -83,15 +84,16 @@ export function evaluateGateB(input: GateInputB): GateCheck[] {
     budget = check('budget', 'B', false, 'Sin tasa de cambio o monto inválido; el presupuesto falla cerrado');
   } else {
     const capMinor = Math.round(company.purchase_cap * MINOR_UNITS);
+    const total = `Total ${quote.finalAmount.amount} ${quote.finalAmount.currency} con envío e impuestos (${fmt(amountMinor)} ${company.currency})`;
     priceCap = amountMinor <= capMinor
-      ? check('price_cap', 'B', true, `El total queda dentro del tope de ${company.purchase_cap} ${company.currency}`)
-      : check('price_cap', 'B', false, `El total convertido excede el tope de ${company.purchase_cap} ${company.currency}`);
+      ? check('price_cap', 'B', true, `${total}; tope ${fmt(capMinor)} ${company.currency}`)
+      : check('price_cap', 'B', false, `${total} excede el tope de ${fmt(capMinor)} ${company.currency}`);
 
     const budgetMinor = Math.round(company.monthly_budget * MINOR_UNITS);
     const spendMinor = Math.round(monthly_spend * MINOR_UNITS);
     budget = spendMinor + amountMinor <= budgetMinor
-      ? check('budget', 'B', true, 'El gasto del mes más este pedido queda dentro del presupuesto')
-      : check('budget', 'B', false, `El gasto del mes más este pedido excede el presupuesto de ${company.monthly_budget} ${company.currency}`);
+      ? check('budget', 'B', true, `Gasto del mes ${fmt(spendMinor)} + ${fmt(amountMinor)} de ${fmt(budgetMinor)} ${company.currency}`)
+      : check('budget', 'B', false, `Gasto del mes ${fmt(spendMinor)} + ${fmt(amountMinor)} excede el presupuesto de ${fmt(budgetMinor)} ${company.currency}`);
   }
 
   const expires = Date.parse(quote.expiresAt);

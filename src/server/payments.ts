@@ -1,4 +1,6 @@
 // ReapProvider y MockProvider. Los tipos salen de src/contracts.ts.
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import {
   ProviderError,
   type CheckoutStatus,
@@ -148,26 +150,44 @@ export interface MockScript {
   getCheckout?: ProviderCheckout | ProviderError;
 }
 
-export function createMockProvider(script: MockScript = {}): PaymentProvider {
+// Respuestas reales del sandbox (fixtures/reap) por merchant, variante y país; lo demás cotiza a precio de catálogo.
+const MOCK_FIXTURES: { merchant: string; variant?: string; country: string; file: string }[] = [
+  { merchant: 'digitmakers.ca', variant: '67588566679782', country: 'CA', file: 'quote-ok-digitmakers-ca.json' },
+  { merchant: 'digitmakers.ca', variant: '44386635612390', country: 'CA', file: 'quote-ok-thermistor-ca.json' },
+  { merchant: 'cubictech.com.au', country: 'CA', file: 'quote-ok-cubictech-ca.json' },
+];
+
+function mockFixtureQuote(product: Product, country: string, dir: string): unknown | null {
+  if (product.merchant === 'digitmakers.ca' && country === 'MX') {
+    const raw = JSON.parse(readFileSync(path.join(dir, 'quote-unshippable-mx.json'), 'utf8')) as { error: { detail: { message: string } } };
+    throw new ProviderError('ITEMS_UNSHIPPABLE', raw.error.detail.message);
+  }
+  const hit = MOCK_FIXTURES.find((f) => f.merchant === product.merchant && f.country === country
+    && (!f.variant || f.variant === product.variant_id));
+  return hit ? JSON.parse(readFileSync(path.join(dir, hit.file), 'utf8')) : null;
+}
+
+export function createMockProvider(script: MockScript = {}, fixturesDir = path.join(process.cwd(), 'fixtures', 'reap')): PaymentProvider {
   const quotes = new Map<string, ProviderQuote>();
-  const checkouts = new Map<string, ProviderCheckout>();
+  const checkouts = new Map<string, { checkout: ProviderCheckout; polls: number }>();
   let n = 0;
+  const inTenMinutes = () => new Date(Date.now() + 10 * 60_000).toISOString();
   return {
     async quote(input) {
       if (script.quote instanceof ProviderError) throw script.quote;
       if (script.quote) return script.quote;
       if (input.quantity !== 1) throw new ProviderError('UNKNOWN', 'La cantidad solo puede ser 1');
       const { checkoutUrl, merchantDomain } = buildCheckoutUrl(input.product);
-      const quote: ProviderQuote = {
-        id: `mock-quote-${++n}`,
-        checkoutUrl,
-        merchantDomain,
-        itemsSubtotal: { amount: input.product.price, currency: input.product.currency },
-        shipping: null,
-        tax: null,
-        finalAmount: { amount: input.product.price, currency: input.product.currency },
-        expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
-      };
+      const raw = mockFixtureQuote(input.product, input.shipTo.country, fixturesDir);
+      const quote: ProviderQuote = raw
+        ? { ...parseQuote(raw, checkoutUrl, merchantDomain), id: crypto.randomUUID(), expiresAt: inTenMinutes() }
+        : {
+          id: crypto.randomUUID(), checkoutUrl, merchantDomain,
+          itemsSubtotal: { amount: input.product.price, currency: input.product.currency },
+          shipping: null, tax: null,
+          finalAmount: { amount: input.product.price, currency: input.product.currency },
+          expiresAt: inTenMinutes(),
+        };
       quotes.set(quote.id, quote);
       return quote;
     },
@@ -176,22 +196,31 @@ export function createMockProvider(script: MockScript = {}): PaymentProvider {
       if (script.checkout) return script.checkout;
       const quote = quotes.get(input.quoteId);
       const checkout: ProviderCheckout = {
-        id: `mock-checkout-${++n}`,
+        id: crypto.randomUUID(),
         status: 'REQUIRES_ACTION',
         approvalUrl: 'https://sandbox.collect.prava.space/mock',
-        approvalExpiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+        approvalExpiresAt: inTenMinutes(),
         orderId: null,
         finalAmount: quote?.finalAmount ?? null,
       };
-      checkouts.set(checkout.id, checkout);
+      checkouts.set(checkout.id, { checkout, polls: 0 });
       return checkout;
     },
+    // Avanza un estado por consulta: REQUIRES_ACTION -> PROCESSING -> COMPLETED.
     async getCheckout(id) {
       if (script.getCheckout instanceof ProviderError) throw script.getCheckout;
       if (script.getCheckout) return script.getCheckout;
-      const found = checkouts.get(id);
-      if (!found) throw new ProviderError('UNKNOWN', 'Checkout mock inexistente');
-      return found;
+      const entry = checkouts.get(id);
+      if (!entry) throw new ProviderError('UNKNOWN', 'Checkout mock inexistente');
+      entry.polls += 1;
+      const done = entry.polls >= 2;
+      entry.checkout = {
+        ...entry.checkout,
+        status: done ? 'COMPLETED' : 'PROCESSING',
+        approvalUrl: null,
+        orderId: entry.checkout.orderId ?? `ord_MOCK_${++n}`,
+      };
+      return entry.checkout;
     },
   };
 }
