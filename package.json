@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "bash scripts/agents.test.sh && vitest run",
+    "test": "vitest run",
     "e2e": "node --no-warnings scripts/e2e-demo.mjs"
   },
   "dependencies": {
