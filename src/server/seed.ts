@@ -8,7 +8,7 @@ export const FX_TO_MXN: Record<string, number> = { MXN: 1, CAD: 13.0, AUD: 12.0 
 export function seedCompany(): Company {
   return {
     id: 'forja3d', name: 'Forja3D', currency: 'MXN',
-    monthly_budget: 6000, purchase_cap: 1000, billing_email: 'ops@forja3d.mx',
+    monthly_budget: 6000, purchase_cap: 1000, billing_email: 'ops@forja3d.example',
   };
 }
 
@@ -17,7 +17,7 @@ export function seedSites(): Site[] {
     {
       id: 'gdl', company_id: 'forja3d', name: 'Planta Guadalajara', country: 'MX',
       shipping_address: {
-        firstName: 'Forja3D', lastName: 'Operaciones', phone: '+523312345678',
+        firstName: 'Forja3D', lastName: 'Operaciones', phone: '+523300000000',
         addressLine1: 'Av. Chapultepec 100', city: 'Guadalajara', region: 'JAL', postalCode: '44100', country: 'MX',
       },
     },
