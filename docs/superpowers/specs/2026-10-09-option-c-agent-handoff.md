@@ -1,4 +1,4 @@
-# Opción C — entrega para seis agentes
+# Opción C: entrega para seis agentes
 
 **Decisión:** el usuario aprobó C para todas las pantallas. Usar `public/wireframe/agents.html`, no reinterpretar A/B ni copiar la toolbar de revisión a la app.
 
@@ -13,16 +13,16 @@ Con Next.js: `/wireframe/agents.html?agent=1`; cambiar agent=1..6. El selector d
 
 | Agente | Máquina | Revisar en C | Entrega necesaria para esa UI |
 |---|---|---|---|
-| 1 — datos/integración | Mac | Flota, Detalle, Libro, Ajustes | DTO de máquinas/stock/propuestas/libro; acciones de operador; presupuesto e importes correctos; stock actualizado solo tras pago confirmado; transacciones e idempotencia. |
-| 2 — gate | Mac | Propuesta, Aprobación | Siete checks con boolean y razón legible. P1 válido, P2 incompatibilidad exacta y P4 envío. Revalidar al pagar, no solo deshabilitar botón. |
-| 3 — UI | Mac | Las nueve vistas | Implementar composición C sobre Server Components y acciones del plan. Móvil, reloj, navegación, estados vacíos/carga/error y accesibilidad. |
-| 4 — MCP/Klipper | Pop | Flota, Bitácora, Propuesta | Solicitud automática con identidad de máquina; una abierta por máquina/pieza; notas como datos; ninguna autorización de compra; rechazo visible y sin tokens. |
-| 5 — visión | Pop | Evidencia, Detalle, Propuesta | Foto asociada a máquina; modelo/hotend; modo live/replay; lectura insuficiente pide nueva evidencia; nunca inferir desgaste o usar esquema como foto real. |
-| 6 — pagos | Pop | Aprobación, Resultado, Libro | Mock/Reap explícito; reference/amount/currency confirmados; fallo y estado ambiguo distintos; idempotencia y conciliación; no duplicar compra. |
+| 1: datos/integración | Mac | Flota, Detalle, Libro, Ajustes | DTO de máquinas/stock/propuestas/libro; acciones de operador; presupuesto e importes correctos; stock actualizado solo tras pago confirmado; transacciones e idempotencia. |
+| 2: gate | Mac | Propuesta, Aprobación | Siete checks con boolean y razón legible. P1 válido, P2 incompatibilidad exacta y P4 envío. Revalidar al pagar, no solo deshabilitar botón. |
+| 3: UI | Mac | Las nueve vistas | Implementar composición C sobre Server Components y acciones del servidor. Móvil, reloj, navegación, estados vacíos/carga/error y accesibilidad. |
+| 4: MCP/Klipper | Pop | Flota, Bitácora, Propuesta | Solicitud automática con identidad de máquina; una abierta por máquina/pieza; notas como datos; ninguna autorización de compra; rechazo visible y sin tokens. |
+| 5: visión | Pop | Evidencia, Detalle, Propuesta | Foto asociada a máquina; modelo/hotend; modo live/replay; lectura insuficiente pide nueva evidencia; nunca inferir desgaste o usar esquema como foto real. |
+| 6: pagos | Pop | Aprobación, Resultado, Libro | Mock/Reap explícito; reference/amount/currency confirmados; fallo y estado ambiguo distintos; idempotencia y conciliación; no duplicar compra. |
 
 ## Contratos y ownership
 
-La selección de agente del artifact es una guía de consumo de pantallas. El agente 3 es dueño de la implementación visual; los demás producen datos y comportamiento del servidor. Archivos asignados, tipos, firmas y checkpoints siguen en [plan de implementación](../plans/2026-10-09-partproof-six-agents.md) y `src/contracts.ts`; este handoff no crea interfaces nuevas.
+La selección de agente del artifact es una guía de consumo de pantallas. El agente 3 es dueño de la implementación visual; los demás producen datos y comportamiento del servidor. Tipos, firmas y checkpoints quedaron en `src/contracts.ts`; este handoff no crea interfaces nuevas.
 
 1. Agentes 1, 2, 5 y 6 entregan los módulos del checkpoint C1.
 2. Agente 3 conecta C a queries/acciones, reemplazando snapshots por datos reales.

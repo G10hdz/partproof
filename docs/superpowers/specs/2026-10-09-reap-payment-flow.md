@@ -214,11 +214,11 @@ Consecuencias: `externalCheckout` está habilitado (no hace falta `products/sear
 
 | Tema | Estado | Cómo se resuelve |
 |---|---|---|
-| Host del sandbox | Resuelto (S-1): `sg.sandbox.api.reap.global` | — |
-| `externalCheckout` habilitado para los merchants de `/merchants` | Resuelto para digitmakers.ca (S-2) y cubictech.com.au (S-7) | — |
-| Checkout que no sale de `PROCESSING` | Abierto (S-5) | Preguntar a @adrianxeno en el grupo si el sandbox llega a `COMPLETED` |
-| Moneda de `finalAmount` | Resuelto (S-2): moneda del merchant | — |
-| Página hosted del sandbox | Resuelto: enrollment (S-1) y aprobación de checkout con passkey (S-5) | — |
+| Host del sandbox | Resuelto (S-1): `sg.sandbox.api.reap.global` | n/a |
+| `externalCheckout` habilitado para los merchants de `/merchants` | Resuelto para digitmakers.ca (S-2) y cubictech.com.au (S-7) | n/a |
+| Checkout que no sale de `PROCESSING` | Abierto (S-5) | Preguntar al equipo de Reap en el grupo si el sandbox llega a `COMPLETED` |
+| Moneda de `finalAmount` | Resuelto (S-2): moneda del merchant | n/a |
+| Página hosted del sandbox | Resuelto: enrollment (S-1) y aprobación de checkout con passkey (S-5) | n/a |
 | `returnUrl` | Debe ser HTTPS (E-7); el demo corre en `127.0.0.1` | Usar cualquier página HTTPS estática; el estado se lee por consulta, no por el regreso |
 | `X-Simulate-Checkout` | No salta la aprobación (S-6) | Respaldo real: grabación de una corrida completa |
 

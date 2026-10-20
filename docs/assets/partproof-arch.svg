@@ -38,7 +38,7 @@
 
   <!-- nodos -->
   <rect class="n" x="30" y="80" width="170" height="56" rx="6"/>
-  <text x="115" y="104" class="name" text-anchor="middle">Impresoras P1–P4</text>
+  <text x="115" y="104" class="name" text-anchor="middle">Impresoras P1-P4</text>
   <text x="115" y="121" class="sub" text-anchor="middle">klipper-agent · simulado</text>
 
   <rect class="n" x="270" y="80" width="150" height="56" rx="6"/>

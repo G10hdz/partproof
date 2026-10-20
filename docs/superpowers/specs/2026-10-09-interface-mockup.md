@@ -1,4 +1,4 @@
-# PartProof — pantallas y recorrido del mockup
+# PartProof: pantallas y recorrido del mockup
 
 Estado: propuesta visual para diseñar el recorrido; no cambia el funcionamiento de los specs técnicos.
 
@@ -21,7 +21,7 @@ El artifact sigue siendo un wireframe: sus snapshots y mensajes simulados no sus
 - Referencia 7: resumen ordenado antes de confirmar. El pago se realiza por el proveedor; no se diseñan campos de tarjeta, CVV ni selector de billeteras.
 - Paleta propuesta: crema #F3EEE6, superficies #FAF8F4, carbón #171816, naranja #F65C24. Usar naranja con texto carbón; los estados usan texto/icono además de color.
 - Tipografía: Helvetica Neue/system sans para interfaz, monospace para id/horas/referencias. Serif puntual opcional en el saludo, como referencia 6.
-- Paneles con radios de 16–24 px, botones de 12 px, sombras discretas. La prioridad son lectura, imagen y espacio, no efectos.
+- Paneles con radios de 16-24 px, botones de 12 px, sombras discretas. La prioridad son lectura, imagen y espacio, no efectos.
 - Escritorio: navegación lateral estrecha, contenido principal y resumen contextual a la derecha. Móvil: columna única, navegación Flota/Propuestas/Libro; Registro y Ajustes en menú.
 - SANDBOX permanente. MOCK o REAP SANDBOX para pago, LIVE o REPETICIÓN para visión. En mockups ilustrativos se indica “datos de ejemplo”.
 
@@ -68,7 +68,7 @@ Verificación: `node scripts/wireframe.test.mjs` y revisión en Chrome de las 27
 
 | Vista | Pregunta del usuario | Elementos principales | Acción |
 |---|---|---|---|
-| 1. Flota `/` | ¿Qué máquina necesita atención? | Forja3D MX; cuatro equipos P1–P4; modelo/hotend; horas; stock/mínimo; solicitudes pendientes; gasto mensual contra 6000 MXN | Ver máquina o propuesta. “Avanzar horas” en zona de controles de demo |
+| 1. Flota `/` | ¿Qué máquina necesita atención? | Forja3D MX; cuatro equipos P1-P4; modelo/hotend; horas; stock/mínimo; solicitudes pendientes; gasto mensual contra 6000 MXN | Ver máquina o propuesta. “Avanzar horas” en zona de controles de demo |
 | 2. Detalle de máquina, subvista de Flota | ¿Qué pasó y qué evidencia existe? | Imagen del equipo; id/modelo/hotend; pieza; stock; horas desde cambio/vida nominal; historial de eventos; foto de placa | Abrir propuesta; completar evidencia |
 | 3. Captura de evidencia, modal/subvista móvil | ¿La placa se lee bien? | Máquina a la que pertenece; visor/preview; guía de encuadre; tomar/subir foto; repetir; estado de lectura; modelo leído y registrado | Usar foto; repetir si borrosa; confirmar modelo solo como dato del técnico, sin saltarse gate |
 | 4. Propuesta `/proposals`, selección por id | ¿Esta pieza le queda y puede comprarse? | Máquina solicitante y origen; imagen de pieza; nombre/variante; tienda; importe original y equivalente MXN; evidencia; vigencia; siete verificaciones con razones; resultado destacado | Ir a aprobar si válida; rechazar. Bloqueada: aprobación deshabilitada y razón visible |
