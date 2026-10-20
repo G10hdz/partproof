@@ -15,7 +15,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 function seedCompany(): Company {
   return {
     id: 'forja3d', name: 'Forja3D', currency: 'MXN',
-    monthly_budget: 6000, purchase_cap: 1000, billing_email: 'ops@forja3d.mx',
+    monthly_budget: 6000, purchase_cap: 1000, billing_email: 'ops@forja3d.example',
   };
 }
 
@@ -23,7 +23,7 @@ const SITES: Site[] = [
   {
     id: 'gdl', company_id: 'forja3d', name: 'Planta Guadalajara', country: 'MX',
     shipping_address: {
-      firstName: 'Forja3D', lastName: 'Operaciones', phone: '+523312345678',
+      firstName: 'Forja3D', lastName: 'Operaciones', phone: '+523300000000',
       addressLine1: 'Av. Chapultepec 100', city: 'Guadalajara', region: 'JAL', postalCode: '44100', country: 'MX',
     },
   },

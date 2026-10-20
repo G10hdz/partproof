@@ -4,7 +4,7 @@
   "owner": {
     "type": "CLIENT_REFERENCE",
     "id": "forja3d-mx",
-    "email": "ops@forja3d.mx"
+    "email": "ops@forja3d.example"
   },
   "paymentMethod": {
     "type": "CARD",

@@ -46,7 +46,7 @@ const NOW = new Date('2026-10-10T03:00:00Z');
 const inMin = (m: number) => new Date(NOW.getTime() + m * 60_000).toISOString();
 const company = (over: Partial<Company> = {}): Company => ({
   id: 'forja3d', name: 'Forja3D', currency: 'MXN', monthly_budget: 6000, purchase_cap: 1500,
-  billing_email: 'ops@forja3d.mx', ...over,
+  billing_email: 'ops@forja3d.example', ...over,
 });
 const quote = (amount: number, currency: string, expiresAt = inMin(8)): ProviderQuote => ({
   id: 'q1', checkoutUrl: 'https://digitmakers.ca/cart/67588566679782:1', merchantDomain: 'digitmakers.ca',
